@@ -9,7 +9,9 @@ import {
   IconX,
   IconCheckCircle,
   IconArrowRight,
-  IconRope
+  IconRope,
+  IconEye,
+  IconEyeOff
 } from './Icons';
 import {
   loginAdmin,
@@ -28,6 +30,7 @@ export default function AdminPanel({ onCloseAdmin }) {
   const [isAuthenticated, setIsAuthenticated] = useState(checkAuthStatus());
   const [loginEmail, setLoginEmail] = useState('admin@bokulrope.com');
   const [loginPassword, setLoginPassword] = useState('Admin@Bokul2026!');
+  const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
 
@@ -273,13 +276,34 @@ export default function AdminPanel({ onCloseAdmin }) {
 
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', tracking: '0.05em', color: '#d4d4d8', marginBottom: '6px' }}>Security Password</label>
-              <input
-                type="password"
-                required
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#27272a', border: '1px solid #3f3f46', color: '#ffffff', outline: 'none' }}
-              />
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  style={{ width: '100%', padding: '12px 42px 12px 12px', borderRadius: '8px', background: '#27272a', border: '1px solid #3f3f46', color: '#ffffff', outline: 'none' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#a1a1aa',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0
+                  }}
+                >
+                  {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+                </button>
+              </div>
             </div>
 
             <button

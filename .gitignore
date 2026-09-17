@@ -1,0 +1,47 @@
+# ==========================================
+# 1. Project Memory, PRDs & Internal Docs
+# ==========================================
+MEMORY.md
+memory*.md
+*prd*.md
+*design*.md
+*.tmp
+*.draft
+
+# ==========================================
+# 2. Dependencies & Build Artifacts
+# ==========================================
+node_modules/
+*/node_modules/
+dist/
+dist-ssr/
+build/
+*.local
+
+# ==========================================
+# 3. Environment variables & Secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# 4. Logs
+# ==========================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# 5. IDE & Operating System Files
+# ==========================================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.suo

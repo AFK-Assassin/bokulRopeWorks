@@ -2311,26 +2311,140 @@ button {
   gap: 8px;
 }
 
+/* Dark Theme Modal for Admin Panel */
+.admin-modal-dark {
+  background-color: #18181b !important;
+  border: 1px solid #3f3f46 !important;
+  color: #f4f4f5 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+}
+
+.admin-modal-dark .modal-close {
+  background-color: #27272a;
+  color: #a1a1aa;
+}
+
+.admin-modal-dark .modal-close:hover {
+  background-color: #3f3f46;
+  color: #ffffff;
+}
+
+.admin-modal-title {
+  color: #ffffff !important;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #27272a;
+}
+
 .lead-detail-box {
-  text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-size: 0.92rem;
+  gap: 10px;
+  text-align: left;
+}
+
+.lead-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background-color: #27272a;
+  border-radius: 8px;
+  border: 1px solid #3f3f46;
+  font-size: 0.9rem;
 }
 
 .lead-row strong {
-  color: var(--dark-bg);
+  color: #a1a1aa !important;
+  font-weight: 600;
+}
+
+.lead-row span {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.lead-row a {
+  color: #fbbf24 !important;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.lead-row .highlight-text {
+  color: #f59e0b !important;
+  font-weight: 700;
 }
 
 .msg-quote {
-  background-color: var(--bg-muted);
-  border-left: 3px solid var(--primary);
-  padding: 10px;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  background-color: #09090b !important;
+  border-left: 3px solid #f59e0b !important;
+  color: #e4e4e7 !important;
+  padding: 14px 16px;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  line-height: 1.6;
   font-style: italic;
+  margin-top: 4px;
 }
+
+.admin-ai-estimate-box {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(180, 83, 9, 0.18));
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 16px;
+}
+
+.admin-ai-estimate-box h4 {
+  color: #fbbf24 !important;
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ai-est-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ai-est-row:last-child {
+  border-bottom: none;
+}
+
+.ai-est-row span {
+  color: #d4d4d8 !important;
+}
+
+.ai-est-row strong {
+  color: #10b981 !important;
+  font-weight: 700;
+}
+
+.admin-modal-dark label {
+  color: #e4e4e7 !important;
+}
+
+.admin-modal-dark input,
+.admin-modal-dark select,
+.admin-modal-dark textarea {
+  background-color: #27272a !important;
+  border: 1px solid #3f3f46 !important;
+  color: #ffffff !important;
+}
+
+.admin-modal-dark input:focus,
+.admin-modal-dark select:focus,
+.admin-modal-dark textarea:focus {
+  border-color: #f59e0b !important;
+}
+
 
 /* =========================================
    Responsive Breakpoints

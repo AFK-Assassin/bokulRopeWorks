@@ -516,32 +516,35 @@ export default function AdminPanel({ onCloseAdmin }) {
       {/* Inquiry Detail Drawer / Modal */}
       {selectedInquiry && (
         <div className="modal-overlay" onClick={() => setSelectedInquiry(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content admin-modal-dark" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setSelectedInquiry(null)}>
               <IconX size={20} />
             </button>
-            <h3>Lead Inquiry Details</h3>
+            <h3 className="admin-modal-title">Lead Inquiry Details</h3>
             <div className="lead-detail-box">
-              <div className="lead-row"><strong>Buyer Name:</strong> {selectedInquiry.fullName}</div>
-              <div className="lead-row"><strong>Company:</strong> {selectedInquiry.companyName || 'N/A'}</div>
-              <div className="lead-row"><strong>Phone:</strong> {selectedInquiry.phone}</div>
-              <div className="lead-row"><strong>Email:</strong> {selectedInquiry.email}</div>
-              <div className="lead-row"><strong>Product Requested:</strong> {selectedInquiry.productInterest}</div>
-              <div className="lead-row"><strong>Volume:</strong> {selectedInquiry.requiredQuantity || 'Standard Batch'}</div>
-              <div className="lead-row"><strong>Destination:</strong> {selectedInquiry.deliveryLocation || 'Not specified'}</div>
-              <div className="lead-row"><strong>Buyer Requirement Message:</strong></div>
-              <div className="msg-quote">{selectedInquiry.message}</div>
+              <div className="lead-row"><strong>Buyer Name:</strong> <span>{selectedInquiry.fullName}</span></div>
+              <div className="lead-row"><strong>Company:</strong> <span>{selectedInquiry.companyName || 'N/A'}</span></div>
+              <div className="lead-row"><strong>Phone:</strong> <a href={`tel:${selectedInquiry.phone}`}>{selectedInquiry.phone}</a></div>
+              <div className="lead-row"><strong>Email:</strong> <a href={`mailto:${selectedInquiry.email}`}>{selectedInquiry.email}</a></div>
+              <div className="lead-row"><strong>Product Requested:</strong> <span className="highlight-text">{selectedInquiry.productInterest}</span></div>
+              <div className="lead-row"><strong>Volume Required:</strong> <span>{selectedInquiry.requiredQuantity || 'Standard Batch'}</span></div>
+              <div className="lead-row"><strong>Destination:</strong> <span>{selectedInquiry.deliveryLocation || 'Not specified'}</span></div>
+              
+              <div style={{ marginTop: '10px' }}>
+                <strong style={{ color: '#a1a1aa', fontSize: '0.85rem', display: 'block', marginBottom: '6px' }}>Buyer Requirement Message:</strong>
+                <div className="msg-quote">{selectedInquiry.message || 'No additional notes provided by buyer.'}</div>
+              </div>
 
               {selectedInquiry.estimate && (
-                <div className="ai-estimate-box" style={{ marginTop: '16px' }}>
-                  <h4>Generated Estimate Breakdown</h4>
-                  <div>Indicative Rate: <strong>{selectedInquiry.estimate.priceRangePerKg}</strong></div>
-                  <div>Estimated Total: <strong>{selectedInquiry.estimate.estimatedTotalRange}</strong></div>
-                  <div>Lead Time: <strong>{selectedInquiry.estimate.leadTime}</strong></div>
+                <div className="admin-ai-estimate-box">
+                  <h4>Generated AI Estimate Breakdown</h4>
+                  <div className="ai-est-row"><span>Indicative Rate Range:</span> <strong>{selectedInquiry.estimate.priceRangePerKg}</strong></div>
+                  <div className="ai-est-row"><span>Estimated Total Value:</span> <strong>{selectedInquiry.estimate.estimatedTotalRange}</strong></div>
+                  <div className="ai-est-row"><span>Estimated Production Lead Time:</span> <strong>{selectedInquiry.estimate.leadTime}</strong></div>
                 </div>
               )}
             </div>
-            <button className="btn-primary" style={{ width: '100%', marginTop: '20px' }} onClick={() => setSelectedInquiry(null)}>
+            <button className="btn-primary" style={{ width: '100%', marginTop: '24px', justifyContent: 'center' }} onClick={() => setSelectedInquiry(null)}>
               Close Lead Details
             </button>
           </div>
@@ -551,11 +554,11 @@ export default function AdminPanel({ onCloseAdmin }) {
       {/* Add / Edit Product Modal */}
       {productModalOpen && (
         <div className="modal-overlay" onClick={() => setProductModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content admin-modal-dark" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setProductModalOpen(false)}>
               <IconX size={20} />
             </button>
-            <h3>{editingProduct ? 'Edit Product Item' : 'Add New Product to Catalogue'}</h3>
+            <h3 className="admin-modal-title">{editingProduct ? 'Edit Product Item' : 'Add New Product to Catalogue'}</h3>
 
             <form onSubmit={handleSaveProduct} className="quote-form" style={{ marginTop: '16px' }}>
               <div className="form-group">

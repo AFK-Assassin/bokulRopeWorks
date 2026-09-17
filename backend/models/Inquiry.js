@@ -39,6 +39,10 @@ const inquirySchema = new mongoose.Schema(
       type: String,
       required: [true, 'Message is required'],
     },
+    estimate: {
+      type: Object,
+      default: null,
+    },
     status: {
       type: String,
       enum: ['New', 'Contacted', 'Quoted', 'Closed'],

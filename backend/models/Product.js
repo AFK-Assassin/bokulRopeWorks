@@ -10,8 +10,8 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ['Twisted Rope', 'Industrial Cordage', 'Packaging Twine', 'Custom Order'],
-      default: 'Twisted Rope',
+      enum: ['Twisted Ropes', 'Industrial Cordage', 'Packaging Twines', 'Custom Orders'],
+      default: 'Twisted Ropes',
     },
     description: {
       type: String,
@@ -32,6 +32,10 @@ const productSchema = new mongoose.Schema(
     moq: {
       type: String,
       default: '500 kg / Bulk Order',
+    },
+    imageUrl: {
+      type: String,
+      default: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=800&q=80',
     },
     isFeatured: {
       type: Boolean,

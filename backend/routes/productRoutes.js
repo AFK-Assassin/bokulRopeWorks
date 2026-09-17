@@ -6,13 +6,17 @@ import {
   updateProduct,
   deleteProduct,
 } from '../controllers/productController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
+// Public routes for buyers
 router.get('/', getProducts);
 router.get('/:id', getProductById);
-router.post('/', createProduct);
-router.put('/:id', updateProduct);
-router.delete('/:id', deleteProduct);
+
+// Protected routes for Owner/Admin catalog management
+router.post('/', protect, createProduct);
+router.put('/:id', protect, updateProduct);
+router.delete('/:id', protect, deleteProduct);
 
 export default router;

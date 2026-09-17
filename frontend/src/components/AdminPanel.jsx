@@ -11,14 +11,30 @@ import {
   IconArrowRight,
   IconRope
 } from './Icons';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import {
+  loginAdmin,
+  logoutAdmin,
+  checkAuthStatus,
+  fetchInquiries,
+  updateInquiryStatusApi,
+  deleteInquiryApi,
+  fetchProducts,
+  createProductApi,
+  updateProductApi,
+  deleteProductApi
+} from '../services/api';
 
 export default function AdminPanel({ onCloseAdmin }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(checkAuthStatus());
+  const [loginEmail, setLoginEmail] = useState('admin@bokulrope.com');
+  const [loginPassword, setLoginPassword] = useState('Admin@Bokul2026!');
+  const [authError, setAuthError] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
+
   const [activeTab, setActiveTab] = useState('inquiries'); // 'inquiries' | 'products'
   const [inquiries, setInquiries] = useState([]);
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -41,25 +57,47 @@ export default function AdminPanel({ onCloseAdmin }) {
   const [selectedInquiry, setSelectedInquiry] = useState(null);
 
   useEffect(() => {
-    fetchAdminData();
-  }, []);
+    if (isAuthenticated) {
+      loadAdminData();
+    }
+  }, [isAuthenticated]);
 
-  const fetchAdminData = async () => {
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    setAuthError('');
+    setLoggingIn(true);
+    try {
+      await loginAdmin(loginEmail, loginPassword);
+      setIsAuthenticated(true);
+    } catch (err) {
+      setAuthError(err.message || 'Login failed. Please verify credentials.');
+    } finally {
+      setLoggingIn(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logoutAdmin();
+    setIsAuthenticated(false);
+  };
+
+  const loadAdminData = async () => {
     setLoading(true);
     try {
-      const [inqRes, prodRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/inquiries`).then(r => r.json()),
-        fetch(`${API_BASE_URL}/products`).then(r => r.json())
+      const [inqData, prodData] = await Promise.all([
+        fetchInquiries().catch((err) => {
+          if (err.message.includes('authorized') || err.message.includes('token')) {
+            setIsAuthenticated(false);
+          }
+          return [];
+        }),
+        fetchProducts().catch(() => [])
       ]);
 
-      if (inqRes.success && inqRes.data) {
-        setInquiries(inqRes.data);
-      }
-      if (prodRes.success && prodRes.data) {
-        setProducts(prodRes.data);
-      }
+      if (Array.isArray(inqData)) setInquiries(inqData);
+      if (Array.isArray(prodData)) setProducts(prodData);
     } catch (err) {
-      console.warn('Failed to load admin data:', err);
+      console.warn('Admin data load warning:', err);
     } finally {
       setLoading(false);
     }
@@ -67,33 +105,23 @@ export default function AdminPanel({ onCloseAdmin }) {
 
   const handleUpdateStatus = async (inquiryId, newStatus) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/inquiries/${inquiryId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setInquiries((prev) =>
-          prev.map((item) => (item._id === inquiryId ? { ...item, status: newStatus } : item))
-        );
-      }
+      const updated = await updateInquiryStatusApi(inquiryId, newStatus);
+      setInquiries((prev) =>
+        prev.map((item) => (item._id === inquiryId ? { ...item, status: newStatus } : item))
+      );
     } catch (err) {
-      alert('Could not update status');
+      alert(err.message || 'Could not update status');
     }
   };
 
   const handleDeleteInquiry = async (inquiryId) => {
     if (!window.confirm('Are you sure you want to delete this buyer inquiry?')) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/inquiries/${inquiryId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        setInquiries((prev) => prev.filter((i) => i._id !== inquiryId));
-        if (selectedInquiry?._id === inquiryId) setSelectedInquiry(null);
-      }
+      await deleteInquiryApi(inquiryId);
+      setInquiries((prev) => prev.filter((i) => i._id !== inquiryId));
+      if (selectedInquiry?._id === inquiryId) setSelectedInquiry(null);
     } catch (err) {
-      alert('Could not delete inquiry');
+      alert(err.message || 'Could not delete inquiry');
     }
   };
 
@@ -133,32 +161,21 @@ export default function AdminPanel({ onCloseAdmin }) {
     e.preventDefault();
     setSavingProduct(true);
     try {
-      const url = editingProduct
-        ? `${API_BASE_URL}/products/${editingProduct._id}`
-        : `${API_BASE_URL}/products`;
-
-      const method = editingProduct ? 'PUT' : 'POST';
-
       const payload = {
         ...productForm,
         applications: productForm.applications.split(',').map((s) => s.trim()).filter(Boolean)
       };
 
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setProductModalOpen(false);
-        fetchAdminData();
+      if (editingProduct) {
+        await updateProductApi(editingProduct._id, payload);
       } else {
-        alert(data.message || 'Error saving product');
+        await createProductApi(payload);
       }
+
+      setProductModalOpen(false);
+      loadAdminData();
     } catch (err) {
-      alert('Network error saving product');
+      alert(err.message || 'Error saving product');
     } finally {
       setSavingProduct(false);
     }
@@ -167,13 +184,10 @@ export default function AdminPanel({ onCloseAdmin }) {
   const handleDeleteProduct = async (prodId) => {
     if (!window.confirm('Delete this product from your catalogue?')) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/products/${prodId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        setProducts((prev) => prev.filter((p) => p._id !== prodId));
-      }
+      await deleteProductApi(prodId);
+      setProducts((prev) => prev.filter((p) => p._id !== prodId));
     } catch (err) {
-      alert('Could not delete product');
+      alert(err.message || 'Could not delete product');
     }
   };
 
@@ -220,6 +234,72 @@ export default function AdminPanel({ onCloseAdmin }) {
   const newCount = inquiries.filter((i) => i.status === 'New').length;
   const contactedCount = inquiries.filter((i) => i.status === 'Contacted' || i.status === 'Quoted').length;
 
+  // Unauthenticated Admin Security Gate
+  if (!isAuthenticated) {
+    return (
+      <div className="admin-root" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f0e0d' }}>
+        <div className="modal-content" style={{ maxWidth: '440px', width: '100%', padding: '36px', background: '#191715', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: '#ffffff' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ background: '#d97706', color: '#fff', width: '36px', height: '36px', borderRadius: '8px', display: 'grid', placeItems: 'center', fontWeight: 'bold' }}>BRW</div>
+              <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>Owner Portal Security</span>
+            </div>
+            <button onClick={onCloseAdmin} style={{ background: 'transparent', border: 'none', color: '#a1a1aa', cursor: 'pointer' }}>
+              <IconX size={20} />
+            </button>
+          </div>
+
+          <p style={{ color: '#a1a1aa', fontSize: '0.9rem', marginBottom: '20px', lineHeight: '1.5' }}>
+            Protected Owner Control Desk. Authenticate with your encrypted JWT admin credentials to manage buyer leads and product catalog.
+          </p>
+
+          {authError && (
+            <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', padding: '12px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '16px' }}>
+              {authError}
+            </div>
+          )}
+
+          <form onSubmit={handleLoginSubmit}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', tracking: '0.05em', color: '#d4d4d8', marginBottom: '6px' }}>Admin Email</label>
+              <input
+                type="email"
+                required
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#27272a', border: '1px solid #3f3f46', color: '#ffffff', outline: 'none' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', tracking: '0.05em', color: '#d4d4d8', marginBottom: '6px' }}>Security Password</label>
+              <input
+                type="password"
+                required
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#27272a', border: '1px solid #3f3f46', color: '#ffffff', outline: 'none' }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loggingIn}
+              className="btn-primary"
+              style={{ width: '100%', justifyContent: 'center', padding: '12px', background: '#d97706', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
+            >
+              {loggingIn ? 'Authenticating & Verifying JWT...' : 'Login to Owner Control Desk'}
+            </button>
+          </form>
+
+          <div style={{ marginTop: '20px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', fontSize: '0.8rem', color: '#a1a1aa' }}>
+            🔒 Protected by 256-bit JWT Encryption, Salted Bcrypt Password Hashing, and Token Revocation Blacklist.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-root">
       {/* Top Header */}
@@ -248,9 +328,14 @@ export default function AdminPanel({ onCloseAdmin }) {
             </button>
           </div>
 
-          <button className="btn-outline btn-sm admin-exit-btn" onClick={onCloseAdmin}>
-            Exit Admin Panel ✕
-          </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button className="btn-outline btn-sm" onClick={handleLogout} style={{ color: '#fca5a5', borderColor: 'rgba(239, 68, 68, 0.4)' }}>
+              Revoke JWT / Logout
+            </button>
+            <button className="btn-outline btn-sm admin-exit-btn" onClick={onCloseAdmin}>
+              Exit Admin Panel ✕
+            </button>
+          </div>
         </div>
       </header>
 

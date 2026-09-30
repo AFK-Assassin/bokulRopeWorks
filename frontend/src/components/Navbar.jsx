@@ -60,13 +60,6 @@ export default function Navbar({ onOpenQuote, onOpenAdmin }) {
           </nav>
 
           <div className="nav-actions">
-            <button 
-              className="btn-outline btn-sm nav-admin-btn" 
-              onClick={() => onOpenAdmin && onOpenAdmin()}
-              title="Owner Dashboard"
-            >
-              Owner Admin
-            </button>
             <motion.button 
               className="btn-primary nav-quote-btn" 
               onClick={() => onOpenQuote()}

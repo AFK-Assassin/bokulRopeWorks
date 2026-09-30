@@ -1,11 +1,7 @@
-import mongoose from 'mongoose';
 import Inquiry from '../models/Inquiry.js';
-import { generateQuoteEstimate } from '../services/aiQuoteService.js';
+import ActivityLog from '../models/ActivityLog.js';
+import { generateInstantQuoteEstimate } from '../services/aiQuoteService.js';
 
-let inMemoryInquiries = [];
-
-// @desc    Submit a new quotation / contact inquiry & generate instant AI estimate with price range
-// @route   POST /api/inquiries
 export const createInquiry = async (req, res, next) => {
   try {
     const {
@@ -13,6 +9,7 @@ export const createInquiry = async (req, res, next) => {
       companyName,
       email,
       phone,
+      whatsApp,
       productInterest,
       diameter,
       requiredQuantity,
@@ -23,53 +20,41 @@ export const createInquiry = async (req, res, next) => {
     if (!fullName || !phone) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide at least your Name and Phone / WhatsApp number.',
+        message: 'Please provide at least a Full Name and Phone number',
       });
     }
 
-    const estimate = await generateQuoteEstimate({
-      fullName,
-      companyName,
-      email: email || '',
-      phone,
-      productInterest,
-      diameter,
-      requiredQuantity,
-      deliveryLocation,
-      message: message || '',
-    });
+    let estimate = null;
+    try {
+      estimate = await generateInstantQuoteEstimate({
+        productName: productInterest,
+        quantity: requiredQuantity,
+        diameter: diameter,
+        location: deliveryLocation,
+      });
+    } catch (aiError) {
+      console.warn('[AI Quote Warning] Fallback to deterministic model:', aiError.message);
+    }
 
-    const inquiryPayload = {
+    const inquiry = await Inquiry.create({
       fullName,
       companyName: companyName || '',
       email: email || '',
       phone,
+      whatsApp: whatsApp || phone,
       productInterest: productInterest || 'General Inquiry',
-      requiredQuantity: requiredQuantity || '',
-      deliveryLocation: deliveryLocation || '',
+      diameter: diameter || '',
+      requiredQuantity: requiredQuantity || 'Standard Batch',
+      deliveryLocation: deliveryLocation || 'Not specified',
       message: message || '',
       estimate,
-      status: 'New',
-      createdAt: new Date(),
-    };
+      status: 'NEW',
+    });
 
-    if (mongoose.connection.readyState === 1) {
-      const savedInquiry = await Inquiry.create(inquiryPayload);
-      return res.status(201).json({
-        success: true,
-        message: 'Your inquiry has been submitted successfully. Instant price range & technical estimation generated.',
-        data: savedInquiry,
-        estimate,
-      });
-    }
-
-    inquiryPayload._id = `inq-${Date.now()}`;
-    inMemoryInquiries.unshift(inquiryPayload);
-
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
-      message: 'Your inquiry has been submitted successfully. Instant price range & technical estimation generated.',
-      data: inquiryPayload,
+      message: 'Quotation request submitted to Bokul Rope Works sales desk',
+      data: inquiry,
       estimate,
     });
   } catch (error) {
@@ -77,72 +62,91 @@ export const createInquiry = async (req, res, next) => {
   }
 };
 
-// @desc    Get all inquiries (for admin review)
-// @route   GET /api/inquiries
 export const getInquiries = async (req, res, next) => {
   try {
-    if (mongoose.connection.readyState === 1) {
-      const inquiries = await Inquiry.find().sort({ createdAt: -1 });
-      return res.status(200).json({
-        success: true,
-        count: inquiries.length,
-        data: inquiries,
-      });
+    const { status, search, archived } = req.query;
+    let query = {};
+
+    if (archived === 'true') {
+      query.isArchived = true;
+    } else {
+      query.isArchived = false;
     }
+
+    if (status && status !== 'All') {
+      query.status = status.toUpperCase();
+    }
+
+    if (search) {
+      query.$or = [
+        { fullName: { $regex: search, $options: 'i' } },
+        { companyName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
+        { productInterest: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const inquiries = await Inquiry.find(query).sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      count: inquiries.length,
+      data: inquiries,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateInquiryStatus = async (req, res, next) => {
+  try {
+    const { status, internalNotes, isArchived } = req.body;
+    let updateFields = {};
+    if (status) updateFields.status = status.toUpperCase();
+    if (internalNotes !== undefined) updateFields.internalNotes = internalNotes;
+    if (isArchived !== undefined) updateFields.isArchived = isArchived;
+
+    const inquiry = await Inquiry.findByIdAndUpdate(req.params.id, updateFields, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!inquiry) {
+      return res.status(404).json({ success: false, message: 'Inquiry not found' });
+    }
+
+    await ActivityLog.create({
+      action: `Updated Quote #${inquiry._id.toString().slice(-6)} Status: ${inquiry.status}`,
+      category: 'Quote',
+      adminEmail: req.user?.email || 'admin@bokulrope.com',
+    });
 
     res.status(200).json({
       success: true,
-      count: inMemoryInquiries.length,
-      data: inMemoryInquiries,
+      data: inquiry,
     });
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Update inquiry status (Admin)
-// @route   PATCH /api/inquiries/:id/status
-export const updateInquiryStatus = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    if (!['New', 'Contacted', 'Quoted', 'Closed'].includes(status)) {
-      return res.status(400).json({ success: false, message: 'Invalid status value.' });
-    }
-
-    if (mongoose.connection.readyState === 1 && mongoose.isValidObjectId(id)) {
-      const updated = await Inquiry.findByIdAndUpdate(id, { status }, { new: true });
-      if (updated) {
-        return res.status(200).json({ success: true, data: updated, message: 'Status updated' });
-      }
-    }
-
-    const item = inMemoryInquiries.find((i) => i._id === id);
-    if (item) {
-      item.status = status;
-      return res.status(200).json({ success: true, data: item, message: 'Status updated' });
-    }
-
-    res.status(404).json({ success: false, message: 'Inquiry not found' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Delete inquiry (Admin)
-// @route   DELETE /api/inquiries/:id
 export const deleteInquiry = async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    if (mongoose.connection.readyState === 1 && mongoose.isValidObjectId(id)) {
-      await Inquiry.findByIdAndDelete(id);
-      return res.status(200).json({ success: true, message: 'Inquiry deleted' });
+    const inquiry = await Inquiry.findByIdAndDelete(req.params.id);
+    if (!inquiry) {
+      return res.status(404).json({ success: false, message: 'Inquiry not found' });
     }
 
-    inMemoryInquiries = inMemoryInquiries.filter((i) => i._id !== id);
-    res.status(200).json({ success: true, message: 'Inquiry deleted' });
+    await ActivityLog.create({
+      action: `Deleted Quote Request: ${inquiry.fullName} (${inquiry.productInterest})`,
+      category: 'Quote',
+      adminEmail: req.user?.email || 'admin@bokulrope.com',
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Inquiry removed successfully',
+    });
   } catch (error) {
     next(error);
   }

@@ -40,7 +40,7 @@ export default function Footer({ onOpenQuote, onOpenAdmin }) {
               <li><a href="#about">About Our Heritage</a></li>
               <li><a href="#contact">Contact Sales Desk</a></li>
               {onOpenAdmin && (
-                <li><button onClick={onOpenAdmin} className="footer-admin-link">Owner Admin Dashboard</button></li>
+                <li><button onClick={onOpenAdmin} className="footer-admin-link">Owner Portal</button></li>
               )}
             </ul>
           </div>

@@ -23,9 +23,18 @@ const inquirySchema = new mongoose.Schema(
       required: [true, 'Phone number is required'],
       trim: true,
     },
+    whatsApp: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     productInterest: {
       type: String,
-      default: 'General Inquiry',
+      default: '3-Strand Hawser Laid Jute Rope',
+    },
+    diameter: {
+      type: String,
+      default: '',
     },
     requiredQuantity: {
       type: String,
@@ -45,8 +54,16 @@ const inquirySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['New', 'Contacted', 'Quoted', 'Closed'],
-      default: 'New',
+      enum: ['NEW', 'CONTACTED', 'QUOTED', 'NEGOTIATING', 'WON', 'LOST', 'New', 'Contacted', 'Quoted', 'Closed'],
+      default: 'NEW',
+    },
+    internalNotes: {
+      type: String,
+      default: '',
+    },
+    isArchived: {
+      type: Boolean,
+      default: false,
     },
   },
   {

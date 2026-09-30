@@ -8,6 +8,14 @@ import { connectDB } from './config/db.js';
 import productRoutes from './routes/productRoutes.js';
 import inquiryRoutes from './routes/inquiryRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
+import processRoutes from './routes/processRoutes.js';
+import applicationRoutes from './routes/applicationRoutes.js';
+import certificationRoutes from './routes/certificationRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
+import mediaRoutes from './routes/mediaRoutes.js';
+import activityRoutes from './routes/activityRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { User } from './models/User.js';
 
@@ -26,7 +34,7 @@ app.use(helmet());
 // 2. Global Rate Limiter for DDoS Protection
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 200, // Limit each IP to 200 requests per windowMs
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -39,7 +47,7 @@ app.use('/api', apiLimiter);
 // 3. Strict Rate Limiter for Authentication & Inquiry Submissions
 const strictAuthLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per 15 minutes
+  max: 30, // Limit each IP to 30 requests per 15 minutes
   message: {
     success: false,
     message: 'Too many submission attempts. Please wait 15 minutes before trying again.',
@@ -57,8 +65,8 @@ app.use(
 );
 
 // 5. Payload Capping to prevent Buffer Overflow / Memory Exhaustion
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '500kb' }));
+app.use(express.urlencoded({ extended: true, limit: '500kb' }));
 
 // 6. NoSQL Query Injection Protection
 app.use(mongoSanitize());
@@ -78,6 +86,14 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/inquiries', inquiryRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/process', processRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/certifications', certificationRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/media', mediaRoutes);
+app.use('/api/activity', activityRoutes);
 
 // Auto-seed Default Admin Account if none exists
 const seedDefaultAdmin = async () => {

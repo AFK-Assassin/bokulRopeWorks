@@ -1,8 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MANUFACTURING_STEPS } from '../data/productsData';
+import { fetchProcessSteps } from '../services/api';
 import { IconShieldCheck, IconFactory } from './Icons';
 
 export default function ManufacturingProcess({ onOpenQuote }) {
+  const [liveSteps, setLiveSteps] = useState(null);
+
+  useEffect(() => {
+    loadSteps();
+  }, []);
+
+  const loadSteps = async () => {
+    try {
+      const data = await fetchProcessSteps();
+      if (data && data.length > 0) {
+        setLiveSteps(
+          data.map((st) => ({
+            step: String(st.stepNumber || 1).padStart(2, '0'),
+            icon: '⚙️',
+            title: st.title,
+            desc: st.description,
+          }))
+        );
+      }
+    } catch {
+      // Fallback to static rich data
+    }
+  };
+
+  const steps = liveSteps || MANUFACTURING_STEPS;
+
   return (
     <section id="process" className="section process-section">
       <div className="container">
@@ -15,7 +42,7 @@ export default function ManufacturingProcess({ onOpenQuote }) {
         </div>
 
         <div className="process-grid">
-          {MANUFACTURING_STEPS.map((step, index) => (
+          {steps.map((step, index) => (
             <div key={index} className="process-step-card">
               <div className="step-header">
                 <span className="step-num">{step.step}</span>

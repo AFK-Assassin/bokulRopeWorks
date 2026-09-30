@@ -1,8 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { APPLICATIONS } from '../data/productsData';
+import { fetchApplications } from '../services/api';
 import { IconArrowRight } from './Icons';
 
 export default function ApplicationsSection({ onOpenQuote }) {
+  const [liveApps, setLiveApps] = useState(null);
+
+  useEffect(() => {
+    loadApps();
+  }, []);
+
+  const loadApps = async () => {
+    try {
+      const data = await fetchApplications();
+      if (data && data.length > 0) {
+        setLiveApps(
+          data.map((a, idx) => ({
+            id: a._id || `app-${idx}`,
+            icon: '🏭',
+            title: a.title,
+            desc: a.description,
+            recommended: (a.suitableProducts || []).join(', ') || '3-Strand Jute Cordage',
+            diameters: (a.benefits || []).join(', ') || 'Custom Gauge Range',
+          }))
+        );
+      }
+    } catch {
+      // Fallback
+    }
+  };
+
+  const apps = liveApps || APPLICATIONS;
+
   return (
     <section id="applications" className="section applications-section">
       <div className="container">
@@ -15,7 +44,7 @@ export default function ApplicationsSection({ onOpenQuote }) {
         </div>
 
         <div className="applications-grid">
-          {APPLICATIONS.map((app) => (
+          {apps.map((app) => (
             <div key={app.id} className="application-card">
               <div className="app-card-icon">{app.icon}</div>
               <h3 className="app-card-title">{app.title}</h3>
@@ -27,7 +56,7 @@ export default function ApplicationsSection({ onOpenQuote }) {
                   <span className="app-info-val">{app.recommended}</span>
                 </div>
                 <div className="app-info-row">
-                  <span className="app-info-label">Standard Diameters:</span>
+                  <span className="app-info-label">Standard Diameters / Benefits:</span>
                   <span className="app-info-val">{app.diameters}</span>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustMetrics from './components/TrustMetrics';
@@ -13,13 +13,54 @@ import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import QuoteModal from './components/QuoteModal';
 import FloatingCTA from './components/FloatingCTA';
-import AdminPanel from './components/AdminPanel';
+import OwnerLogin from './admin/OwnerLogin';
+import AdminLayout from './admin/AdminLayout';
+import { checkAuthStatus, logoutAdmin } from './services/api';
 
 function App() {
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [isAuthenticated, setIsAuthenticated] = useState(checkAuthStatus());
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('adminUser'));
+    } catch {
+      return null;
+    }
+  });
+
+  // Modals state for public website
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [prefilledProduct, setPrefilledProduct] = useState(null);
   const [detailProduct, setDetailProduct] = useState(null);
-  const [isAdminView, setIsAdminView] = useState(false);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setCurrentPath(window.location.pathname);
+      setIsAuthenticated(checkAuthStatus());
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
+
+  const navigateTo = (path) => {
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+    setIsAuthenticated(checkAuthStatus());
+  };
+
+  const handleLoginSuccess = (user) => {
+    setIsAuthenticated(true);
+    setCurrentUser(user);
+    navigateTo('/admin/dashboard');
+  };
+
+  const handleLogout = async () => {
+    await logoutAdmin();
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    navigateTo('/owner-login');
+  };
 
   const handleOpenQuote = (productOrName = null) => {
     if (productOrName) {
@@ -47,20 +88,54 @@ function App() {
     setDetailProduct(null);
   };
 
-  if (isAdminView) {
-    return <AdminPanel onCloseAdmin={() => setIsAdminView(false)} />;
+  // ROUTE 1: Dedicated Owner Login (/owner-login)
+  if (currentPath === '/owner-login') {
+    if (isAuthenticated) {
+      return (
+        <AdminLayout
+          currentUser={currentUser}
+          onLogout={handleLogout}
+          onExitAdmin={() => navigateTo('/')}
+        />
+      );
+    }
+    return (
+      <OwnerLogin
+        onLoginSuccess={handleLoginSuccess}
+        onBackToSite={() => navigateTo('/')}
+      />
+    );
   }
 
+  // ROUTE 2: Admin Dashboard & Management Suite (/admin/*)
+  if (currentPath.startsWith('/admin')) {
+    if (!isAuthenticated) {
+      return (
+        <OwnerLogin
+          onLoginSuccess={handleLoginSuccess}
+          onBackToSite={() => navigateTo('/')}
+        />
+      );
+    }
+    return (
+      <AdminLayout
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onExitAdmin={() => navigateTo('/')}
+      />
+    );
+  }
+
+  // ROUTE 3: Public Website
   return (
     <div className="app-root">
-      {/* Navigation */}
+      {/* Navigation - Clean Public Nav without Admin Button */}
       <Navbar
         onOpenQuote={handleOpenQuote}
-        onOpenAdmin={() => setIsAdminView(true)}
       />
 
       <main>
-        {/* Hero Section */}
+        {/* Hero Section - Preserved exactly as approved */}
         <Hero onOpenQuote={handleOpenQuote} />
 
         {/* 4 Trust Pillars */}
@@ -91,10 +166,10 @@ function App() {
         <ContactSection />
       </main>
 
-      {/* Footer */}
+      {/* Footer with subtle discreet owner link */}
       <Footer
         onOpenQuote={handleOpenQuote}
-        onOpenAdmin={() => setIsAdminView(true)}
+        onOpenAdmin={() => navigateTo('/owner-login')}
       />
 
       {/* Floating CTA Buttons */}

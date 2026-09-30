@@ -5,7 +5,7 @@ export default function FloatingCTA({ onOpenQuote }) {
   return (
     <div className="floating-cta-container">
       <a
-        href="https://wa.me/919876543210?text=Hello%20Bokul%20Rope%20Works,%20I%20am%20interested%20in%20a%20commercial%20jute%20rope%20quotation."
+        href="https://wa.me/917044620790?text=Hello%20Bokul%20Rope%20Works,%20I%20am%20interested%20in%20a%20commercial%20jute%20rope%20quotation."
         target="_blank"
         rel="noopener noreferrer"
         className="floating-btn floating-wa"

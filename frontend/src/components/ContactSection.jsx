@@ -27,8 +27,8 @@ export default function ContactSection() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.email || !formData.phone || !formData.message) {
-      setErrorMsg('Please fill in all required fields (Name, Email, Phone, and Message).');
+    if (!formData.fullName || !formData.phone) {
+      setErrorMsg('Please provide at least your Full Name and Phone / WhatsApp number.');
       return;
     }
 
@@ -87,8 +87,8 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <strong>Commercial Sales Desk</strong>
-                  <p><a href="tel:+919876543210">+91 98765 43210</a></p>
-                  <span className="c-sub">Mon - Sat: 9:00 AM - 7:00 PM IST</span>
+                  <p><a href="tel:+917044620790">+91 70446 20790</a></p>
+                  <span className="c-sub">Mon - Sat: 8:00 AM - 6:00 PM IST</span>
                 </div>
               </div>
 
@@ -98,7 +98,7 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <strong>Email Inquiries</strong>
-                  <p><a href="mailto:info@bokulropeworks.com">info@bokulropeworks.com</a></p>
+                  <p><a href="mailto:bokul.rope@gmail.com">bokul.rope@gmail.com</a></p>
                   <span className="c-sub">Guaranteed response within 24 hours</span>
                 </div>
               </div>
@@ -113,7 +113,7 @@ export default function ContactSection() {
                 <p>Chat directly with our dispatch manager for urgent quotes.</p>
               </div>
               <a
-                href="https://wa.me/919876543210?text=Hello%20Bokul%20Rope%20Works,%20I%20am%20interested%20in%20a%20commercial%20jute%20rope%20quotation."
+                href="https://wa.me/917044620790?text=Hello%20Bokul%20Rope%20Works,%20I%20am%20interested%20in%20a%20commercial%20jute%20rope%20quotation."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-whatsapp"
@@ -236,11 +236,10 @@ export default function ContactSection() {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Business Email <span className="req">*</span></label>
+                    <label>Business Email <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
                     <input
                       type="email"
                       name="email"
-                      required
                       placeholder="name@company.com"
                       value={formData.email}
                       onChange={handleChange}
@@ -252,7 +251,7 @@ export default function ContactSection() {
                       type="tel"
                       name="phone"
                       required
-                      placeholder="+91 98765 43210"
+                      placeholder="+91 70446 20790"
                       value={formData.phone}
                       onChange={handleChange}
                     />
@@ -269,11 +268,17 @@ export default function ContactSection() {
                     >
                       <option value="3-Strand Hawser Laid Jute Rope">3-Strand Hawser Laid Jute Rope (6mm - 40mm)</option>
                       <option value="Heavy-Duty 4-Ply Industrial Cordage">Heavy-Duty 4-Ply Industrial Cordage (12mm - 50mm+)</option>
-                      <option value="Eco-Friendly Packaging & Bundling Twines">Eco-Friendly Packaging & Bundling Twines</option>
-                      <option value="Treated Agricultural & Nursery Ropes">Treated Agricultural & Nursery Ropes</option>
-                      <option value="Polished & Colored Jute Cordage">Polished & Colored Jute Cordage</option>
-                      <option value="Custom Engineered OEM Jute Ropes">Custom Engineered OEM / Tender Specification</option>
-                      <option value="General Jute Requirement">Other / General Requirement</option>
+                      <option value="Pure Manila Ropes (Abaca Fibre)">Pure Manila Ropes - Abaca Fibre (6mm - 48mm+)</option>
+                      <option value="Industrial Sisal Ropes & Cordage">Industrial Sisal Ropes & Cordage (4mm - 36mm)</option>
+                      <option value="Precision-Spun Jute Yarn">Precision-Spun Jute Yarn (Single / Multi-End)</option>
+                      <option value="Eco-Friendly Jute Packaging Twines">Eco-Friendly Jute Packaging & Bundling Twines</option>
+                      <option value="Traditional Jute Baan Ropes">Traditional Jute Baan Ropes (Charpai Cordage)</option>
+                      <option value="Precision Line Ropes">Precision Line Ropes (Masonry, Marine & Chalk)</option>
+                      <option value="Marine & Industrial Spunyarn">Marine & Industrial Spunyarn (Tarred / Natural)</option>
+                      <option value="Natural Jute Carpets, Rugs & Mats">Natural Jute Carpets, Rugs & Geotextile Mats</option>
+                      <option value="Burlap Jute Bags & Heavy Gunny Sacks">Burlap Jute Bags & Heavy Gunny Sacks (50kg/100kg)</option>
+                      <option value="Custom Engineered OEM Specifications">Custom Engineered OEM / Tender Specification</option>
+                      <option value="General Cordage Requirement">Other / General Requirement</option>
                     </select>
                   </div>
                   <div className="form-group">
@@ -300,10 +305,9 @@ export default function ContactSection() {
                 </div>
 
                 <div className="form-group">
-                  <label>Specifications & Custom Notes <span className="req">*</span></label>
+                  <label>Specifications & Custom Notes <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
                   <textarea
                     name="message"
-                    required
                     rows="3"
                     placeholder="Mention target diameter (e.g. 16mm), cut lengths, oiled/unoiled requirement, or delivery schedule..."
                     value={formData.message}

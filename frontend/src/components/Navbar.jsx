@@ -16,12 +16,12 @@ export default function Navbar({ onOpenQuote, onOpenAdmin }) {
             <span>Howrah, West Bengal</span>
           </div>
           <div className="topbar-right">
-            <a href="tel:+919876543210" className="topbar-link">
-              <IconPhone size={13} /> +91 98765 43210
+            <a href="tel:+917044620790" className="topbar-link">
+              <IconPhone size={13} /> +91 70446 20790
             </a>
             <span className="divider">•</span>
-            <a href="mailto:info@bokulropeworks.com" className="topbar-link">
-              <IconMail size={13} /> info@bokulropeworks.com
+            <a href="mailto:bokul.rope@gmail.com" className="topbar-link">
+              <IconMail size={13} /> bokul.rope@gmail.com
             </a>
           </div>
         </div>
@@ -36,10 +36,14 @@ export default function Navbar({ onOpenQuote, onOpenAdmin }) {
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
           <a href="#home" className="brand-logo">
-            <div className="brand-badge">BRW</div>
+            <img 
+              src="/images/BRW-logo.webp" 
+              alt="Bokul Rope Works Logo" 
+              className="brand-logo-img" 
+            />
             <div className="brand-text">
               Bokul Rope Works
-              <span>Industrial Jute Cordage</span>
+              <span>Natural Fibre Cordage</span>
             </div>
           </a>
 

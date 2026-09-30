@@ -41,8 +41,8 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.email || !formData.phone || !formData.message) {
-      setErrorMsg('Please fill in all required fields (Name, Email, Phone, and Requirement).');
+    if (!formData.fullName || !formData.phone) {
+      setErrorMsg('Please provide at least your Full Name and Phone / WhatsApp number.');
       return;
     }
 
@@ -198,11 +198,10 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Business Email <span className="req">*</span></label>
+                    <label>Business Email <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
                     <input
                       type="email"
                       name="email"
-                      required
                       placeholder="name@company.com"
                       value={formData.email}
                       onChange={handleChange}
@@ -214,7 +213,7 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
                       type="tel"
                       name="phone"
                       required
-                      placeholder="+91 98765 43210"
+                      placeholder="+91 70446 20790"
                       value={formData.phone}
                       onChange={handleChange}
                     />
@@ -231,11 +230,17 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
                     >
                       <option value="3-Strand Hawser Laid Jute Rope">3-Strand Hawser Laid Jute Rope (6mm - 40mm)</option>
                       <option value="Heavy-Duty 4-Ply Industrial Cordage">Heavy-Duty 4-Ply Industrial Cordage (12mm - 50mm+)</option>
-                      <option value="Eco-Friendly Packaging & Bundling Twines">Eco-Friendly Packaging & Bundling Twines</option>
-                      <option value="Treated Agricultural & Nursery Ropes">Treated Agricultural & Nursery Ropes</option>
-                      <option value="Polished & Colored Jute Cordage">Polished & Colored Jute Cordage</option>
-                      <option value="Custom Engineered OEM Jute Ropes">Custom Engineered OEM / Tender Specification</option>
-                      <option value="General Jute Requirement">Other / General Requirement</option>
+                      <option value="Pure Manila Ropes (Abaca Fibre)">Pure Manila Ropes - Abaca Fibre (6mm - 48mm+)</option>
+                      <option value="Industrial Sisal Ropes & Cordage">Industrial Sisal Ropes & Cordage (4mm - 36mm)</option>
+                      <option value="Precision-Spun Jute Yarn">Precision-Spun Jute Yarn (Single / Multi-End)</option>
+                      <option value="Eco-Friendly Jute Packaging Twines">Eco-Friendly Jute Packaging & Bundling Twines</option>
+                      <option value="Traditional Jute Baan Ropes">Traditional Jute Baan Ropes (Charpai Cordage)</option>
+                      <option value="Precision Line Ropes">Precision Line Ropes (Masonry, Marine & Chalk)</option>
+                      <option value="Marine & Industrial Spunyarn">Marine & Industrial Spunyarn (Tarred / Natural)</option>
+                      <option value="Natural Jute Carpets, Rugs & Mats">Natural Jute Carpets, Rugs & Geotextile Mats</option>
+                      <option value="Burlap Jute Bags & Heavy Gunny Sacks">Burlap Jute Bags & Heavy Gunny Sacks (50kg/100kg)</option>
+                      <option value="Custom Engineered OEM Specifications">Custom Engineered OEM / Tender Specification</option>
+                      <option value="General Cordage Requirement">Other / General Requirement</option>
                     </select>
                   </div>
                   <div className="form-group">
@@ -274,12 +279,11 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
                 </div>
 
                 <div className="form-group">
-                  <label>Specific Application & Custom Requirements <span className="req">*</span></label>
+                  <label>Specific Application & Custom Notes <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
                   <textarea
                     name="message"
-                    required
                     rows="3"
-                    placeholder="Describe your intended application (e.g. scaffolding, marine lashing, export bundling), cut lengths, oiled/unoiled preference..."
+                    placeholder="Describe intended application (scaffolding, marine lashing, export bundling), cut lengths, oiled/unoiled..."
                     value={formData.message}
                     onChange={handleChange}
                   ></textarea>

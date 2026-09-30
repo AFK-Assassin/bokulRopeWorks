@@ -16,8 +16,8 @@ export default function QualitySpecs({ onOpenQuote }) {
     <section id="quality" className="section quality-section">
       <div className="container">
         <div className="section-header">
-          <div className="section-subtitle">Technical Standards & Rigor</div>
-          <h2 className="section-title">Physical Properties & Breaking Strength Reference</h2>
+          <div className="section-subtitle">Technical Standards &amp; Rigor</div>
+          <h2 className="section-title">Physical Properties &amp; Breaking Strength Reference</h2>
           <p className="section-desc">
             Standard indicative specifications for 3-ply and 4-ply natural jute cordage. Customized tolerances and linear weight counts can be calibrated for specific industrial tenders.
           </p>
@@ -48,37 +48,46 @@ export default function QualitySpecs({ onOpenQuote }) {
             </tbody>
           </table>
         </div>
+      </div>
 
-        {/* Jute Advantages Grid */}
-        <div className="jute-advantages-grid">
-          <div className="adv-card">
-            <div className="adv-icon">
-              <IconShieldCheck size={24} />
-            </div>
-            <h4>Superior Knot Friction & Grip</h4>
-            <p>
-              Natural jute fibers possess high surface friction, ensuring knots remain securely locked under heavy load without synthetic slip or unraveling.
-            </p>
-          </div>
+      {/* Mill photo background section with advantages grid on top */}
+      <div className="adv-bg-section">
+        {/* Background image + dark overlay */}
+        <div className="adv-bg-image" />
+        <div className="adv-bg-overlay" />
 
-          <div className="adv-card">
-            <div className="adv-icon">
-              <IconLeaf size={24} />
+        <div className="container adv-bg-inner">
+          <div className="adv-section-label">Why Natural Jute Fibre</div>
+          <div className="jute-advantages-grid">
+            <div className="adv-card">
+              <div className="adv-icon">
+                <IconShieldCheck size={26} />
+              </div>
+              <h4>Superior Knot Friction &amp; Grip</h4>
+              <p>
+                Natural jute fibers possess high surface friction, ensuring knots remain securely locked under heavy load without synthetic slip or unraveling.
+              </p>
             </div>
-            <h4>Low Static & Heat Resistance</h4>
-            <p>
-              Unlike synthetic poly ropes, jute produces no static charge, resists moderate friction heating without melting, and is 100% compostable post-service.
-            </p>
-          </div>
 
-          <div className="adv-card">
-            <div className="adv-icon">
-              <IconCheckCircle size={24} />
+            <div className="adv-card">
+              <div className="adv-icon">
+                <IconLeaf size={26} />
+              </div>
+              <h4>Low Static &amp; Heat Resistance</h4>
+              <p>
+                Unlike synthetic poly ropes, jute produces no static charge, resists moderate friction heating without melting, and is 100% compostable post-service.
+              </p>
             </div>
-            <h4>Controlled Elasticity</h4>
-            <p>
-              Low elongation under standard working tension provides firm structural stability for construction scaffolding and heavy container binding.
-            </p>
+
+            <div className="adv-card">
+              <div className="adv-icon">
+                <IconCheckCircle size={26} />
+              </div>
+              <h4>Controlled Elasticity</h4>
+              <p>
+                Low elongation under standard working tension provides firm structural stability for construction scaffolding and heavy container binding.
+              </p>
+            </div>
           </div>
         </div>
       </div>

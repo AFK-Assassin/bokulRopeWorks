@@ -12,7 +12,7 @@ export default function QuoteBanner() {
             </p>
           </div>
           <div>
-            <a href="mailto:info@bokulropeworks.com" className="btn-white">
+            <a href="mailto:bokul.rope@gmail.com" className="btn-white">
               Contact Sales Desk
             </a>
           </div>

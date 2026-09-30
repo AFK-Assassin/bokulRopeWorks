@@ -157,6 +157,24 @@ button {
   gap: 10px;
 }
 
+.brand-logo-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(180, 125, 60, 0.4);
+  background-color: #ffffff;
+  flex-shrink: 0;
+  display: block;
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.brand-logo:hover .brand-logo-img {
+  transform: scale(1.05);
+  border-color: var(--primary);
+}
+
 .brand-badge {
   width: 38px;
   height: 38px;
@@ -188,6 +206,13 @@ button {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   margin-top: 1px;
+}
+
+/* Hide brand text on small screens, logo only */
+@media (max-width: 860px) {
+  .brand-text {
+    display: none;
+  }
 }
 
 .desktop-nav .nav-links {
@@ -318,28 +343,72 @@ button {
 }
 
 /* =========================================
-   Hero Section (De-congested & Minimal)
+   Hero Section — Full Background Image
    ========================================= */
 .hero-section {
-  padding: 100px 0 80px;
-  background: radial-gradient(circle at 85% 15%, rgba(180, 125, 60, 0.08) 0%, transparent 60%),
-              linear-gradient(180deg, #ffffff 0%, var(--bg-page) 100%);
-  border-bottom: 1px solid var(--border-subtle);
+  position: relative;
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-.hero-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 60px;
-  align-items: center;
+/* Full-bleed background photo */
+.hero-bg-image {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/bokul_rope_works_hero.webp');
+  background-size: cover;
+  background-position: center 30%;
+  z-index: 0;
+  transform: scale(1.02); /* tiny scale hides aliasing at edges */
+}
+
+/*
+  Cinematic overlay — two gradients composited:
+  1. Left-to-right dark vignette (editorial / magazine look)
+  2. Bottom scrim so text near bottom stays readable
+*/
+.hero-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 8, 16, 0.85) 0%,
+      rgba(5, 8, 16, 0.65) 38%,
+      rgba(5, 8, 16, 0.20) 65%,
+      rgba(5, 8, 16, 0.0)  100%
+    ),
+    linear-gradient(
+      to top,
+      rgba(5, 8, 16, 0.70) 0%,
+      rgba(5, 8, 16, 0.0)  40%
+    );
+  z-index: 1;
+}
+
+/* Inner layout sits above overlay */
+.hero-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding-top: 130px;
+  padding-bottom: 90px;
+}
+
+/* ---- Text content (left-aligned, max 55% width on desktop) ---- */
+.hero-left {
+  max-width: 660px;
 }
 
 .hero-tag {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: var(--primary-light);
-  color: var(--primary);
+  background-color: rgba(180, 125, 60, 0.18);
+  color: #f0c070;
   font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -347,30 +416,36 @@ button {
   padding: 6px 16px;
   border-radius: var(--radius-full);
   margin-bottom: 24px;
-  border: 1px solid var(--primary-border);
+  border: 1px solid rgba(180, 125, 60, 0.35);
+  backdrop-filter: blur(4px);
 }
 
 .hero-title {
-  font-size: 3.4rem;
-  margin-bottom: 24px;
-  color: var(--dark-bg);
+  font-size: 3.3rem;
+  margin-bottom: 22px;
+  color: #f1f5f9;
   letter-spacing: -1px;
   line-height: 1.15;
 }
 
 .hero-title span {
-  color: var(--primary);
-  background: linear-gradient(135deg, #b47d3c, #784d1a);
+  background: linear-gradient(135deg, #f0b952, #e08030);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .hero-desc {
-  font-size: 1.15rem;
-  color: var(--text-muted);
+  font-size: 1.08rem;
+  color: #94a3b8;
   margin-bottom: 28px;
-  line-height: 1.7;
-  max-width: 600px;
+  line-height: 1.75;
+  max-width: 560px;
+}
+
+.hero-desc strong {
+  color: #cbd5e1;
+  font-weight: 600;
 }
 
 .hero-usp-chips {
@@ -384,24 +459,38 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: #ffffff;
-  border: 1px solid var(--border);
+  background-color: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   padding: 6px 14px;
   border-radius: var(--radius-full);
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--text-main);
-  box-shadow: var(--shadow-sm);
+  color: #cbd5e1;
+  backdrop-filter: blur(6px);
 }
 
 .usp-chip svg {
-  color: var(--primary);
+  color: #f0b952;
 }
 
 .hero-actions {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+}
+
+/* Outline button override for dark hero background */
+.hero-outline-btn {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #f1f5f9 !important;
+  backdrop-filter: blur(6px);
+}
+
+.hero-outline-btn:hover {
+  background-color: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(240, 185, 82, 0.7) !important;
+  color: #f0b952 !important;
 }
 
 /* Hero Stat Card */
@@ -1092,47 +1181,119 @@ button {
   background-color: var(--bg-muted);
 }
 
+/* ---- Mill Photo Background + Advantages Grid ---- */
+.adv-bg-section {
+  position: relative;
+  margin-top: 0;
+  overflow: hidden;
+}
+
+.adv-bg-image {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/Mill_2.webp');
+  background-size: cover;
+  background-position: center 40%;
+  z-index: 0;
+}
+
+.adv-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 11, 20, 0.82) 0%,
+    rgba(8, 11, 20, 0.88) 100%
+  );
+  z-index: 1;
+}
+
+.adv-bg-inner {
+  position: relative;
+  z-index: 2;
+  padding-top: 72px;
+  padding-bottom: 72px;
+}
+
+.adv-section-label {
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #f0b952;
+  margin-bottom: 36px;
+}
+
 .jute-advantages-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
 }
 
 .adv-card {
-  background-color: var(--bg-page);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-radius: var(--radius-xl);
   padding: 32px;
-  transition: transform 0.2s;
+  transition: transform 0.25s, background 0.25s, border-color 0.25s;
 }
 
 .adv-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--primary);
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(240, 185, 82, 0.45);
 }
 
 .adv-icon {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: var(--radius-md);
-  background-color: var(--primary-light);
-  color: var(--primary);
+  background: rgba(180, 125, 60, 0.22);
+  color: #f0b952;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 18px;
-  border: 1px solid var(--primary-border);
+  border: 1px solid rgba(180, 125, 60, 0.35);
 }
 
 .adv-card h4 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   margin-bottom: 10px;
+  color: #f1f5f9;
 }
 
 .adv-card p {
   font-size: 0.9rem;
-  color: var(--text-muted);
-  line-height: 1.6;
+  color: #94a3b8;
+  line-height: 1.65;
+}
+
+/* Responsive: stack on tablet/mobile */
+@media (max-width: 860px) {
+  .jute-advantages-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .adv-bg-inner {
+    padding-top: 52px;
+    padding-bottom: 52px;
+  }
+}
+
+@media (max-width: 640px) {
+  .adv-bg-inner {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  .adv-card {
+    padding: 24px;
+  }
 }
 
 /* =========================================
@@ -1449,6 +1610,10 @@ button {
   padding: 40px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .c-form h4 {
@@ -1488,6 +1653,9 @@ button {
 .form-group input,
 .form-group select,
 .form-group textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 11px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -1497,6 +1665,7 @@ button {
   background-color: #ffffff;
   outline: none;
   transition: border-color 0.2s;
+  resize: vertical;
 }
 
 .form-group input:focus,
@@ -1845,17 +2014,22 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .modal-content {
   background-color: #ffffff;
   border-radius: var(--radius-xl);
-  max-width: 680px;
+  max-width: 580px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  padding: 38px;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 32px 28px;
   position: relative;
   box-shadow: var(--shadow-xl);
 }
@@ -2449,85 +2623,208 @@ button {
 /* =========================================
    Responsive Breakpoints
    ========================================= */
+
+/* ---- Tablet (≤1024px) ---- */
 @media (max-width: 1024px) {
-  .hero-grid,
   .about-grid,
   .contact-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .footer-top-grid {
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .detail-body-grid {
     grid-template-columns: 1fr;
   }
+
+  /* Hero: tighten overlay on tablet since image wraps behind text */
+  .hero-bg-overlay {
+    background:
+      linear-gradient(
+        90deg,
+        rgba(5, 8, 16, 0.92) 0%,
+        rgba(5, 8, 16, 0.78) 50%,
+        rgba(5, 8, 16, 0.40) 100%
+      ),
+      linear-gradient(
+        to top,
+        rgba(5, 8, 16, 0.75) 0%,
+        rgba(5, 8, 16, 0.0)  45%
+      );
+  }
+
+  .hero-left {
+    max-width: 100%;
+  }
+
+  .hero-title {
+    font-size: 2.9rem;
+  }
 }
 
+/* ---- Large mobile / nav collapse (≤860px) ---- */
 @media (max-width: 860px) {
   .topbar-left {
     display: none;
   }
-  
+
   .desktop-nav {
     display: none;
   }
-  
+
   .mobile-toggle {
     display: flex;
   }
-  
+
+  .hero-inner {
+    padding-top: 110px;
+    padding-bottom: 70px;
+  }
+
+  /* On mobile hero, make overlay near-full dark for legibility */
+  .hero-bg-overlay {
+    background: rgba(5, 8, 16, 0.74);
+  }
+
   .custom-order-box {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .process-quality-banner {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .p-quality-left {
     flex-direction: column;
     text-align: center;
   }
+
+  /* Products grid: 2 cols on large mobile */
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pillars-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section {
+    padding: 80px 0;
+  }
 }
 
+/* ---- Small mobile (≤640px) ---- */
 @media (max-width: 640px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .hero-section {
+    min-height: 100svh;
+  }
+
+  .hero-inner {
+    padding-top: 95px;
+    padding-bottom: 55px;
+  }
+
   .hero-title {
-    font-size: 2.3rem;
+    font-size: 2.1rem;
+    letter-spacing: -0.5px;
   }
-  
+
+  .hero-desc {
+    font-size: 0.97rem;
+  }
+
+  .hero-usp-chips {
+    gap: 8px;
+  }
+
+  .usp-chip {
+    font-size: 0.78rem;
+    padding: 5px 11px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .hero-actions .btn-primary,
+  .hero-actions .hero-outline-btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
   .section-title {
-    font-size: 1.9rem;
+    font-size: 1.85rem;
   }
-  
+
+  .section {
+    padding: 64px 0;
+  }
+
   .form-row {
     grid-template-columns: 1fr;
   }
-  
+
+  /* Products: single column on phones */
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+
   .footer-top-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .footer-bottom-bar {
     flex-direction: column;
     gap: 12px;
     text-align: center;
   }
-  
+
   .catalog-toolbar {
     flex-direction: column;
     align-items: stretch;
     border-radius: var(--radius-xl);
   }
-  
+
   .search-box {
     width: 100%;
   }
-  
+
   .modal-content {
-    padding: 24px 18px;
+    padding: 22px 16px;
+    border-radius: var(--radius-lg);
+    max-height: 95svh;
+  }
+
+  .nav-quote-btn {
+    display: none;
+  }
+
+  .topbar {
+    font-size: 0.72rem;
+    padding: 5px 0;
+  }
+
+  .navbar-wrapper {
+    padding: 0 12px;
+  }
+
+  .nav-container {
+    height: 58px;
+    padding: 0 16px;
+  }
+
+  .brand-logo-img {
+    width: 38px;
+    height: 38px;
   }
 }

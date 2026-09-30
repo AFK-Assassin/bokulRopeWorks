@@ -330,7 +330,11 @@ export default function AdminPanel({ onCloseAdmin }) {
       <header className="admin-header">
         <div className="container admin-nav-container">
           <div className="brand-logo">
-            <div className="brand-badge">BRW</div>
+            <img 
+              src="/images/BRW-logo.webp" 
+              alt="Bokul Rope Works Logo" 
+              className="brand-logo-img" 
+            />
             <div className="brand-text" style={{ color: '#ffffff' }}>
               Owner Control Desk
               <span>Bokul Rope Works • Howrah Plant</span>

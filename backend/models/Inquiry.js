@@ -14,9 +14,9 @@ const inquirySchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, 'Email address is required'],
       trim: true,
       lowercase: true,
+      default: '',
     },
     phone: {
       type: String,
@@ -37,7 +37,7 @@ const inquirySchema = new mongoose.Schema(
     },
     message: {
       type: String,
-      required: [true, 'Message is required'],
+      default: '',
     },
     estimate: {
       type: Object,

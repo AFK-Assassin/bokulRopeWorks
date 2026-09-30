@@ -20,34 +20,34 @@ export const createInquiry = async (req, res, next) => {
       message,
     } = req.body;
 
-    if (!fullName || !email || !phone || !message) {
+    if (!fullName || !phone) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide fullName, email, phone, and message.',
+        message: 'Please provide at least your Name and Phone / WhatsApp number.',
       });
     }
 
     const estimate = await generateQuoteEstimate({
       fullName,
       companyName,
-      email,
+      email: email || '',
       phone,
       productInterest,
       diameter,
       requiredQuantity,
       deliveryLocation,
-      message,
+      message: message || '',
     });
 
     const inquiryPayload = {
       fullName,
       companyName: companyName || '',
-      email,
+      email: email || '',
       phone,
       productInterest: productInterest || 'General Inquiry',
       requiredQuantity: requiredQuantity || '',
       deliveryLocation: deliveryLocation || '',
-      message,
+      message: message || '',
       estimate,
       status: 'New',
       createdAt: new Date(),

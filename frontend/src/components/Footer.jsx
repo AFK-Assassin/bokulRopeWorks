@@ -9,10 +9,14 @@ export default function Footer({ onOpenQuote, onOpenAdmin }) {
           {/* Brand Col */}
           <div className="footer-brand-col">
             <div className="brand-logo footer-logo">
-              <div className="brand-badge">BRW</div>
+              <img 
+                src="/images/BRW-logo.webp" 
+                alt="Bokul Rope Works Logo" 
+                className="brand-logo-img" 
+              />
               <div className="brand-text">
                 Bokul Rope Works
-                <span>Jute Rope Manufacturer</span>
+                <span>100% Natural Fibre Manufacturer</span>
               </div>
             </div>
             <p className="footer-brand-desc">
@@ -45,11 +49,12 @@ export default function Footer({ onOpenQuote, onOpenAdmin }) {
           <div className="footer-links-col">
             <h4>Product Categories</h4>
             <ul>
-              <li><a href="#products">3-Strand Hawser Laid Ropes</a></li>
-              <li><a href="#products">4-Ply Heavy Industrial Cordage</a></li>
-              <li><a href="#products">Eco Packaging & Bundling Twines</a></li>
-              <li><a href="#products">Treated Agricultural Ropes</a></li>
-              <li><a href="#products">Polished & Colored Cordage</a></li>
+              <li><a href="#products">Jute, Manila & Sisal Ropes</a></li>
+              <li><a href="#products">Jute Yarn & Packaging Twines</a></li>
+              <li><a href="#products">Traditional Baan & Line Ropes</a></li>
+              <li><a href="#products">Marine & Industrial Spunyarn</a></li>
+              <li><a href="#products">Natural Jute Carpets & Mats</a></li>
+              <li><a href="#products">Burlap Bags & Gunny Sacks</a></li>
               <li><a href="#products">Custom OEM Specifications</a></li>
             </ul>
           </div>
@@ -60,15 +65,15 @@ export default function Footer({ onOpenQuote, onOpenAdmin }) {
             <ul className="footer-contact-list">
               <li>
                 <IconMapPin size={16} />
-                <span>Howrah, West Bengal, India (PIN: 711101)</span>
+                <span>Howrah, West Bengal, India (PIN: 711114)</span>
               </li>
               <li>
                 <IconPhone size={16} />
-                <a href="tel:+919876543210">+91 98765 43210</a>
+                <a href="tel:+917044620790">+91 70446 20790</a>
               </li>
               <li>
                 <IconMail size={16} />
-                <a href="mailto:info@bokulropeworks.com">info@bokulropeworks.com</a>
+                <a href="mailto:bokul.rope@gmail.com">bokul.rope@gmail.com</a>
               </li>
             </ul>
             <div style={{ marginTop: '16px' }}>
@@ -84,7 +89,7 @@ export default function Footer({ onOpenQuote, onOpenAdmin }) {
             © {new Date().getFullYear()} <strong>Bokul Rope Works</strong>. All rights reserved. Registered in West Bengal, India.
           </div>
           <div className="footer-meta">
-            <span>B2B Manufacturer • 100% Pure Bengal Jute</span>
+            <span>B2B Manufacturer • 100% Pure Natural Fibre Products</span>
           </div>
         </div>
       </div>

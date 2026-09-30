@@ -46,7 +46,7 @@ export default function ProductsSection({ onSelectProduct, onOpenQuote }) {
           transition={{ duration: 0.5 }}
         >
           <div className="section-subtitle">Catalog & Specifications</div>
-          <h2 className="section-title">Industrial Jute Product Range</h2>
+          <h2 className="section-title">Industrial  Fibre Product Range</h2>
           <p className="section-desc">
             Manufactured from selected Bengal golden fiber, precision-twisted to ensure minimal elongation and high tensile strength.
           </p>

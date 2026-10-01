@@ -204,3 +204,6 @@ Return ONLY the raw JSON object, without markdown quotes or backticks.
     return calculateFallbackEstimate(inquiryData);
   }
 }
+
+export const generateInstantQuoteEstimate = generateQuoteEstimate;
+

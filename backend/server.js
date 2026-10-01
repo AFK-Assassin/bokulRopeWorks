@@ -28,26 +28,59 @@ const PORT = process.env.PORT || 5000;
 // Connect Database
 connectDB();
 
-// 1. HTTP Security Headers (Helmet)
-app.use(helmet());
+// 1. CORS Configuration - MUST BE FIRST BEFORE ANY RATE LIMITERS OR HELMET
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
-// 2. Global Rate Limiter for DDoS Protection
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (curl, same-origin) or local development origins
+      if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  })
+);
+
+// Enable preflight for all routes
+app.options('*', cors());
+
+// 2. HTTP Security Headers (Helmet)
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
+
+// 3. Global Rate Limiter for DDoS Protection (Skip OPTIONS preflight)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // Limit each IP to 200 requests per windowMs
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
-    message: 'Too many requests from this IP. Please try again after 15 minutes (DDoS protection enabled).',
+    message: 'Too many requests from this IP. Please try again after 15 minutes.',
   },
 });
 app.use('/api', apiLimiter);
 
-// 3. Strict Rate Limiter for Authentication & Inquiry Submissions
+// 4. Strict Rate Limiter for Login & Inquiries (Skip OPTIONS preflight)
 const strictAuthLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30, // Limit each IP to 30 requests per 15 minutes
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     message: 'Too many submission attempts. Please wait 15 minutes before trying again.',
@@ -56,15 +89,7 @@ const strictAuthLimiter = rateLimit({
 app.use('/api/auth/login', strictAuthLimiter);
 app.use('/api/inquiries', strictAuthLimiter);
 
-// 4. CORS Configuration
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    credentials: true,
-  })
-);
-
-// 5. Payload Capping to prevent Buffer Overflow / Memory Exhaustion
+// 5. Payload Capping
 app.use(express.json({ limit: '500kb' }));
 app.use(express.urlencoded({ extended: true, limit: '500kb' }));
 
@@ -76,7 +101,7 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     service: 'Bokul Rope Works API',
-    security: 'DDoS Rate Limited & JWT Protected',
+    security: 'CORS Enabled, DDoS Rate Limited & JWT Protected',
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
   });

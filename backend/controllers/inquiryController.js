@@ -1,6 +1,6 @@
 import Inquiry from '../models/Inquiry.js';
 import ActivityLog from '../models/ActivityLog.js';
-import { generateInstantQuoteEstimate } from '../services/aiQuoteService.js';
+import { generateQuoteEstimate } from '../services/aiQuoteService.js';
 
 export const createInquiry = async (req, res, next) => {
   try {
@@ -26,7 +26,7 @@ export const createInquiry = async (req, res, next) => {
 
     let estimate = null;
     try {
-      estimate = await generateInstantQuoteEstimate({
+      estimate = await generateQuoteEstimate({
         productName: productInterest,
         quantity: requiredQuantity,
         diameter: diameter,

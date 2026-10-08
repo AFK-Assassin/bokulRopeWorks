@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { IconShieldCheck, IconCheckCircle } from '../../components/Icons';
+import { useState, useEffect, useCallback } from 'react';
 import { fetchWebsiteSettings, updateWebsiteSettingsApi, fetchAdminProducts } from '../../services/api';
 
 export default function HomepageManager() {
@@ -9,11 +8,7 @@ export default function HomepageManager() {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [sets, prods] = await Promise.all([
@@ -27,7 +22,11 @@ export default function HomepageManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,7 +64,7 @@ export default function HomepageManager() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="admin-form">
         {/* Protected Hero Guarantee Box */}
         <div className="admin-card" style={{ borderLeft: '4px solid #d97706' }}>
           <div className="admin-card-header">

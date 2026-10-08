@@ -1,16 +1,37 @@
-import React from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { IconShieldCheck, IconCheckCircle, IconLeaf } from './Icons';
+import { fetchTechnicalStandards } from '../services/api';
 
-export default function QualitySpecs({ onOpenQuote }) {
-  const specsComparison = [
-    { diameter: '6 mm (1/4")', plies: '3-Strand', approxWeight: '2.5 kg / 100m', breakingLoad: '450 - 550 kgf', primaryUse: 'General tying, agriculture, crafts' },
-    { diameter: '10 mm (3/8")', plies: '3-Strand', approxWeight: '6.8 kg / 100m', breakingLoad: '850 - 1,100 kgf', primaryUse: 'Packaging, construction ties' },
-    { diameter: '12 mm (1/2")', plies: '3-Strand', approxWeight: '10.2 kg / 100m', breakingLoad: '1,200 - 1,500 kgf', primaryUse: 'Scaffolding lashing, light rigging' },
-    { diameter: '16 mm (5/8")', plies: '3/4-Strand', approxWeight: '17.5 kg / 100m', breakingLoad: '1,900 - 2,400 kgf', primaryUse: 'Marine mooring, transport lashing' },
-    { diameter: '20 mm (3/4")', plies: '3/4-Strand', approxWeight: '27.0 kg / 100m', breakingLoad: '2,800 - 3,500 kgf', primaryUse: 'Heavy cargo tie-downs, tug lines' },
-    { diameter: '24 mm (1")', plies: '3/4-Strand', approxWeight: '39.0 kg / 100m', breakingLoad: '3,800 - 4,600 kgf', primaryUse: 'Heavy industrial hoisting, barriers' },
-    { diameter: '32 mm (1-1/4")', plies: '4-Strand / Cable', approxWeight: '70.0 kg / 100m', breakingLoad: '5,500 - 6,800 kgf', primaryUse: 'Quarry & heavy port rigging' }
-  ];
+const DEFAULT_SPECS = [
+  { diameter: '6 mm (1/4")', plies: '3-Strand', approxWeight: '2.5 kg / 100m', breakingLoad: '450 - 550 kgf', primaryUse: 'General tying, agriculture, nursery crafts' },
+  { diameter: '8 mm (5/16")', plies: '3-Strand', approxWeight: '4.5 kg / 100m', breakingLoad: '650 - 800 kgf', primaryUse: 'Packaging bundles, horticulture, crafts' },
+  { diameter: '10 mm (3/8")', plies: '3-Strand', approxWeight: '6.8 kg / 100m', breakingLoad: '850 - 1,100 kgf', primaryUse: 'Packaging, construction ties, light lashing' },
+  { diameter: '12 mm (1/2")', plies: '3-Strand', approxWeight: '10.2 kg / 100m', breakingLoad: '1,200 - 1,500 kgf', primaryUse: 'Scaffolding lashing, light rigging' },
+  { diameter: '14 mm (9/16")', plies: '3-Strand', approxWeight: '13.8 kg / 100m', breakingLoad: '1,550 - 1,900 kgf', primaryUse: 'Commercial lashing, transport binding' },
+  { diameter: '16 mm (5/8")', plies: '3/4-Strand', approxWeight: '17.5 kg / 100m', breakingLoad: '1,900 - 2,400 kgf', primaryUse: 'Marine mooring, transport lashing' },
+  { diameter: '20 mm (3/4")', plies: '3/4-Strand', approxWeight: '27.0 kg / 100m', breakingLoad: '2,800 - 3,500 kgf', primaryUse: 'Heavy cargo tie-downs, tug lines' },
+  { diameter: '24 mm (1")', plies: '3/4-Strand', approxWeight: '39.0 kg / 100m', breakingLoad: '3,800 - 4,600 kgf', primaryUse: 'Heavy industrial hoisting, barriers' },
+  { diameter: '32 mm (1-1/4")', plies: '4-Strand / Cable', approxWeight: '70.0 kg / 100m', breakingLoad: '5,500 - 6,800 kgf', primaryUse: 'Quarry & heavy port rigging' },
+  { diameter: '40 mm (1-1/2")', plies: '4-Strand / Cable', approxWeight: '110.0 kg / 100m', breakingLoad: '8,200 - 10,500 kgf', primaryUse: 'Heavy marine towing, export tenders' }
+];
+
+export default function QualitySpecs() {
+  const [specsData, setSpecsData] = useState(DEFAULT_SPECS);
+
+  const loadLiveStandards = useCallback(async () => {
+    try {
+      const data = await fetchTechnicalStandards();
+      if (Array.isArray(data) && data.length > 0) {
+        setSpecsData(data);
+      }
+    } catch (err) {
+      console.warn('Technical standards load error:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadLiveStandards();
+  }, [loadLiveStandards]);
 
   return (
     <section id="quality" className="section quality-section">
@@ -36,8 +57,8 @@ export default function QualitySpecs({ onOpenQuote }) {
               </tr>
             </thead>
             <tbody>
-              {specsComparison.map((row, idx) => (
-                <tr key={idx}>
+              {specsData.map((row, idx) => (
+                <tr key={row._id || idx}>
                   <td><strong>{row.diameter}</strong></td>
                   <td>{row.plies}</td>
                   <td>{row.approxWeight}</td>

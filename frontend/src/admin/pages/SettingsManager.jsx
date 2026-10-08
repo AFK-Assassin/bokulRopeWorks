@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { fetchWebsiteSettings, updateWebsiteSettingsApi } from '../../services/api';
 
 export default function SettingsManager() {
@@ -18,11 +18,7 @@ export default function SettingsManager() {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchWebsiteSettings();
@@ -32,7 +28,11 @@ export default function SettingsManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,6 +49,10 @@ export default function SettingsManager() {
       setSaving(false);
     }
   };
+
+  if (loading) {
+    return <div className="admin-loading-state">Loading settings configuration...</div>;
+  }
 
   return (
     <div className="admin-page-content">
@@ -67,7 +71,7 @@ export default function SettingsManager() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="admin-form">
         <div className="admin-card">
           <div className="admin-card-header">
             <div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PRODUCTS, CATEGORIES } from '../data/productsData';
 import { fetchProducts } from '../services/api';
@@ -9,16 +9,16 @@ export default function ProductsSection({ onSelectProduct, onOpenQuote }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [liveProducts, setLiveProducts] = useState(null);
 
-  useEffect(() => {
-    loadProducts();
-  }, [selectedCategory]);
-
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     const fetched = await fetchProducts(selectedCategory);
     if (fetched && fetched.length > 0) {
       setLiveProducts(fetched);
     }
-  };
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   const currentProducts = liveProducts || PRODUCTS;
 

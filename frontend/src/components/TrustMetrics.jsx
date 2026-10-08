@@ -1,4 +1,3 @@
-import React from 'react';
 import { IconFactory, IconShieldCheck, IconLeaf, IconTruck } from './Icons';
 
 export default function TrustMetrics() {

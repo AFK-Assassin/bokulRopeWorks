@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { IconRope, IconSearch, IconX, IconCheckCircle } from '../../components/Icons';
+import { useState, useEffect, useCallback } from 'react';
+import { IconRope, IconX } from '../../components/Icons';
 import {
   fetchCategories,
   createCategoryApi,
@@ -15,11 +15,7 @@ export default function CategoryManager() {
   const [form, setForm] = useState({ name: '', description: '', order: 0, isPublished: true });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchCategories();
@@ -29,7 +25,11 @@ export default function CategoryManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   const handleOpenAdd = () => {
     setEditingCategory(null);

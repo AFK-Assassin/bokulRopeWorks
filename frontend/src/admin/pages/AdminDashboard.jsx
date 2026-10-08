@@ -1,12 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
-  IconFactory,
-  IconShieldCheck,
-  IconPhone,
   IconMail,
-  IconRope,
-  IconArrowRight,
-  IconCheckCircle
+  IconRope
 } from '../../components/Icons';
 import {
   fetchAdminProducts,
@@ -27,11 +22,7 @@ export default function AdminDashboard({ onNavigate }) {
   const [recentActivities, setRecentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       const [prods, quotes, msgs, logs] = await Promise.all([
@@ -61,7 +52,11 @@ export default function AdminDashboard({ onNavigate }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   return (
     <div className="admin-page-content">
@@ -114,11 +109,11 @@ export default function AdminDashboard({ onNavigate }) {
           <button className="btn-outline btn-sm" onClick={() => onNavigate('quotes')}>
             📋 Review Quotes ({stats.newQuotes})
           </button>
-          <button className="btn-outline btn-sm" onClick={() => onNavigate('certifications')}>
-            📜 Add Certification
+          <button className="btn-outline btn-sm" onClick={() => onNavigate('process')}>
+            ⚙️ Production Workflow
           </button>
-          <button className="btn-outline btn-sm" onClick={() => onNavigate('media')}>
-            🖼️ Upload Media
+          <button className="btn-outline btn-sm" onClick={() => onNavigate('certifications')}>
+            📜 Standards & Certs
           </button>
         </div>
       </div>

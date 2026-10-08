@@ -1,5 +1,60 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import multer from 'multer';
 import Media from '../models/Media.js';
 import ActivityLog from '../models/ActivityLog.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Ensure upload directories exist
+const backendUploadDir = path.join(__dirname, '..', 'uploads');
+const frontendUploadDir = path.join(__dirname, '..', '..', 'frontend', 'public', 'uploads');
+
+if (!fs.existsSync(backendUploadDir)) {
+  fs.mkdirSync(backendUploadDir, { recursive: true });
+}
+if (!fs.existsSync(frontendUploadDir)) {
+  try {
+    fs.mkdirSync(frontendUploadDir, { recursive: true });
+  } catch (e) {
+    console.warn('Frontend upload dir note:', e.message);
+  }
+}
+
+// Multer Storage Configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, backendUploadDir);
+  },
+  filename: (req, file, cb) => {
+    const cleanName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const finalName = `${uniqueSuffix}-${cleanName}`;
+    cb(null, finalName);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  const isImageMime = file.mimetype && file.mimetype.startsWith('image/');
+  const isPdf = file.mimetype === 'application/pdf';
+  const isImageExt = /\.(jpg|jpeg|png|webp|gif|svg|bmp|tiff|tif|avif|heic|heif|ico|jfif)$/i.test(
+    file.originalname || ''
+  );
+
+  if (isImageMime || isPdf || isImageExt) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files (JPG, JPEG, PNG, WEBP, GIF, SVG, etc.) and PDFs are allowed!'), false);
+  }
+};
+
+export const upload = multer({
+  storage,
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB limit
+  fileFilter,
+});
 
 export const getMedia = async (req, res, next) => {
   try {
@@ -74,11 +129,76 @@ export const createMedia = async (req, res, next) => {
   }
 };
 
+export const uploadMediaFile = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    const filename = req.file.filename;
+    const title = req.body.title || req.file.originalname.replace(/\.[^/.]+$/, '');
+    const altText = req.body.altText || title;
+    const fileType = req.file.mimetype.startsWith('image/') ? 'image' : 'pdf';
+    const url = `/uploads/${filename}`;
+
+    // Also copy to frontend/public/uploads if it exists for seamless development Vite access
+    try {
+      if (fs.existsSync(path.dirname(frontendUploadDir))) {
+        fs.copyFileSync(
+          path.join(backendUploadDir, filename),
+          path.join(frontendUploadDir, filename)
+        );
+      }
+    } catch (copyErr) {
+      console.warn('File copy to frontend public warning:', copyErr.message);
+    }
+
+    const item = await Media.create({
+      title,
+      filename,
+      url,
+      fileType,
+      fileSize: req.file.size,
+      altText,
+    });
+
+    await ActivityLog.create({
+      action: `Uploaded File Asset: ${title} (${filename})`,
+      category: 'Media',
+      adminEmail: req.user?.email || 'admin@bokulrope.com',
+    });
+
+    res.status(201).json({ success: true, data: item });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deleteMedia = async (req, res, next) => {
   try {
     const item = await Media.findByIdAndDelete(req.params.id);
     if (!item) {
       return res.status(404).json({ success: false, message: 'Media item not found' });
+    }
+
+    // Try deleting physical file if in uploads
+    if (item.filename && item.url && item.url.startsWith('/uploads/')) {
+      const filePath = path.join(backendUploadDir, item.filename);
+      if (fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (e) {
+          console.warn('Physical file deletion warning:', e.message);
+        }
+      }
+      const frontendFilePath = path.join(frontendUploadDir, item.filename);
+      if (fs.existsSync(frontendFilePath)) {
+        try {
+          fs.unlinkSync(frontendFilePath);
+        } catch (e) {
+          console.warn('Frontend file deletion warning:', e.message);
+        }
+      }
     }
 
     await ActivityLog.create({

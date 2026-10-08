@@ -1,4 +1,3 @@
-import React from 'react';
 import { IconMapPin, IconPhone, IconMail, IconShieldCheck } from './Icons';
 
 export default function Footer({ onOpenQuote, onOpenAdmin }) {

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { IconFactory, IconSearch, IconX, IconCheckCircle } from '../../components/Icons';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { IconFactory, IconX } from '../../components/Icons';
 import {
   fetchProcessSteps,
   createProcessStepApi,
   updateProcessStepApi,
-  deleteProcessStepApi
+  deleteProcessStepApi,
+  uploadMediaApi,
 } from '../../services/api';
 
 export default function ProcessManager() {
@@ -12,6 +13,11 @@ export default function ProcessManager() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStep, setEditingStep] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
+
   const [form, setForm] = useState({
     stepNumber: 1,
     title: '',
@@ -23,11 +29,7 @@ export default function ProcessManager() {
   });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadSteps();
-  }, []);
-
-  const loadSteps = async () => {
+  const loadSteps = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchProcessSteps();
@@ -37,7 +39,11 @@ export default function ProcessManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadSteps();
+  }, [loadSteps]);
 
   const handleOpenAdd = () => {
     setEditingStep(null);
@@ -50,6 +56,7 @@ export default function ProcessManager() {
       isPublished: true,
       order: steps.length + 1,
     });
+    setImagePreview('/images/bokul_rope_works_process.webp');
     setModalOpen(true);
   };
 
@@ -64,7 +71,46 @@ export default function ProcessManager() {
       isPublished: st.isPublished !== undefined ? st.isPublished : true,
       order: st.order || 0,
     });
+    setImagePreview(st.imageUrl || '/images/bokul_rope_works_process.webp');
     setModalOpen(true);
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) processAndUploadFile(file);
+  };
+
+  const handleFileDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processAndUploadFile(file);
+  };
+
+  const processAndUploadFile = async (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target?.result);
+    reader.readAsDataURL(file);
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      formData.append('title', form.title || cleanTitle);
+      formData.append('altText', form.title || cleanTitle);
+
+      const res = await uploadMediaApi(formData);
+      if (res && res.data && res.data.url) {
+        setForm((prev) => ({ ...prev, imageUrl: res.data.url }));
+        setImagePreview(res.data.url);
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert('Failed to upload image from PC: ' + (err.message || 'Server error'));
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleSave = async (e) => {
@@ -106,23 +152,23 @@ export default function ProcessManager() {
     <div className="admin-page-content">
       <div className="admin-toolbar-card">
         <div className="admin-toolbar-left">
-          <h3>8-Stage Manufacturing Workflow Steps ({steps.length})</h3>
+          <h3>Factory Manufacturing Process Steps ({steps.length})</h3>
         </div>
         <div className="admin-toolbar-right">
           <button className="btn-primary btn-sm" onClick={handleOpenAdd}>
-            + Add Process Step
+            + Add Stage Step
           </button>
         </div>
       </div>
 
       <div className="admin-card">
         {loading ? (
-          <div className="admin-loading-state">Loading manufacturing steps...</div>
+          <div className="admin-loading-state">Loading process pipeline...</div>
         ) : steps.length === 0 ? (
           <div className="admin-empty-state">
             <IconFactory size={36} />
-            <h4>No custom manufacturing steps</h4>
-            <p>Click "Add Process Step" to add mill machinery and workflow stages.</p>
+            <h4>No process steps configured</h4>
+            <p>Add the manufacturing stages for public display.</p>
           </div>
         ) : (
           <div className="admin-table-wrap">
@@ -130,8 +176,7 @@ export default function ProcessManager() {
               <thead>
                 <tr>
                   <th>Stage #</th>
-                  <th>Stage Title</th>
-                  <th>Description</th>
+                  <th>Step Title</th>
                   <th>Key Parameters</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -141,11 +186,11 @@ export default function ProcessManager() {
                 {steps.map((st) => (
                   <tr key={st._id}>
                     <td>
-                      <span className="step-num-badge">Stage {st.stepNumber}</span>
+                      <span className="rate-badge">Stage {st.stepNumber || 1}</span>
                     </td>
-                    <td><strong>{st.title}</strong></td>
                     <td>
-                      <span className="msg-preview-text">{(st.description || '').slice(0, 70)}...</span>
+                      <strong>{st.title}</strong>
+                      <span className="cell-sub">{st.description?.slice(0, 70)}...</span>
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
@@ -204,13 +249,72 @@ export default function ProcessManager() {
                 </div>
               </div>
 
+              {/* Direct Image Upload from PC */}
               <div className="admin-form-group">
-                <label>Step Image URL</label>
+                <label>Step Machinery / Factory Photo</label>
                 <input
-                  type="text"
-                  value={form.imageUrl}
-                  onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.svg,.bmp,.tiff,.tif,.avif,.heic,.jfif"
+                  onChange={handleFileSelect}
                 />
+                <div
+                  className={`direct-upload-dropzone ${dragOver ? 'dragover' : ''} ${imagePreview ? 'has-image' : ''}`}
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleFileDrop}
+                >
+                  {imagePreview ? (
+                    <div className="upload-preview-container">
+                      <div className="preview-image-box">
+                        <img src={imagePreview} alt="Step Preview" />
+                      </div>
+                      <div className="preview-info-box">
+                        <div className="preview-status-pill">
+                          {uploadingImage ? '⏳ Uploading from PC...' : '✓ Image Uploaded from PC'}
+                        </div>
+                        <span className="preview-path-text">Path: <code>{form.imageUrl}</code></span>
+                        <div className="preview-actions-row">
+                          <button
+                            type="button"
+                            className="btn-outline btn-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              fileInputRef.current?.click();
+                            }}
+                          >
+                            📁 Change Image from PC
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="upload-prompt-box">
+                      <div className="upload-icon-circle">📷</div>
+                      <div className="upload-prompt-text">
+                        <strong>Click to Browse Photo from PC or Drag & Drop</strong>
+                        <span>Accepts all formats (JPG, JPEG, PNG, WEBP, etc.)</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div style={{ marginTop: '6px' }}>
+                  <input
+                    type="text"
+                    placeholder="Or specify URL / path"
+                    value={form.imageUrl}
+                    onChange={(e) => {
+                      setForm({ ...form, imageUrl: e.target.value });
+                      setImagePreview(e.target.value);
+                    }}
+                    style={{ fontSize: '0.8rem', padding: '6px 10px' }}
+                  />
+                </div>
               </div>
 
               <div className="admin-form-group">
@@ -247,7 +351,7 @@ export default function ProcessManager() {
 
               <div className="admin-modal-actions">
                 <button type="button" className="btn-outline" onClick={() => setModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn-primary" disabled={saving}>
+                <button type="submit" className="btn-primary" disabled={saving || uploadingImage}>
                   {saving ? 'Saving...' : 'Save Step'}
                 </button>
               </div>

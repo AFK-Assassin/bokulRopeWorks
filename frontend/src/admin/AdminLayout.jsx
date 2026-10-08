@@ -1,14 +1,4 @@
-import React, { useState } from 'react';
-import {
-  IconFactory,
-  IconRope,
-  IconShieldCheck,
-  IconMail,
-  IconPhone,
-  IconX,
-  IconArrowRight,
-  IconCheckCircle
-} from '../components/Icons';
+import { useState } from 'react';
 import AdminDashboard from './pages/AdminDashboard';
 import ProductManager from './pages/ProductManager';
 import CategoryManager from './pages/CategoryManager';
@@ -17,7 +7,7 @@ import MessageManager from './pages/MessageManager';
 import ProcessManager from './pages/ProcessManager';
 import ApplicationManager from './pages/ApplicationManager';
 import CertificationManager from './pages/CertificationManager';
-import MediaManager from './pages/MediaManager';
+import StandardManager from './pages/StandardManager';
 import HomepageManager from './pages/HomepageManager';
 import SettingsManager from './pages/SettingsManager';
 import ProfileManager from './pages/ProfileManager';
@@ -27,22 +17,6 @@ export default function AdminLayout({ currentUser, onLogout, onExitAdmin }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'products', label: 'Products Catalog', icon: '🪢' },
-    { id: 'categories', label: 'Categories', icon: '🏷️' },
-    { id: 'quotes', label: 'Quote Requests', icon: '📋' },
-    { id: 'messages', label: 'Contact Messages', icon: '✉️' },
-    { id: 'process', label: 'Manufacturing Process', icon: '⚙️' },
-    { id: 'applications', label: 'Sector Applications', icon: '🏭' },
-    { id: 'certifications', label: 'Standards & Certs', icon: '📜' },
-    { id: 'media', label: 'Media Library', icon: '🖼️' },
-    { id: 'homepage', label: 'Homepage Content', icon: '🏠' },
-    { id: 'settings', label: 'Website Settings', icon: '🔧' },
-    { id: 'activity', label: 'Audit Activity Log', icon: '🛡️' },
-    { id: 'profile', label: 'Owner Profile', icon: '👤' },
-  ];
-
   const pageTitles = {
     dashboard: 'Executive Dashboard',
     products: 'Product Catalogue & Specs Manager',
@@ -51,8 +25,8 @@ export default function AdminLayout({ currentUser, onLogout, onExitAdmin }) {
     messages: 'Customer Inquiries & Messages',
     process: '8-Stage Manufacturing Workflow',
     applications: 'Core Industrial Sectors & Applications',
+    standards: 'Technical Standards & Breaking Strength Chart',
     certifications: 'Quality Standards & BIS Certifications',
-    media: 'Mill Photo & Document Library',
     homepage: 'Controlled Homepage Content',
     settings: 'Website Settings & Sales Info',
     activity: 'Audit Activity Trail',
@@ -138,18 +112,18 @@ export default function AdminLayout({ currentUser, onLogout, onExitAdmin }) {
             <span>Sector Applications</span>
           </button>
           <button
+            className={`sidebar-nav-item ${activeTab === 'standards' ? 'active' : ''}`}
+            onClick={() => handleNavClick('standards')}
+          >
+            <span className="item-icon">📐</span>
+            <span>Technical Standards</span>
+          </button>
+          <button
             className={`sidebar-nav-item ${activeTab === 'certifications' ? 'active' : ''}`}
             onClick={() => handleNavClick('certifications')}
           >
             <span className="item-icon">📜</span>
             <span>Standards & Certs</span>
-          </button>
-          <button
-            className={`sidebar-nav-item ${activeTab === 'media' ? 'active' : ''}`}
-            onClick={() => handleNavClick('media')}
-          >
-            <span className="item-icon">🖼️</span>
-            <span>Media Library</span>
           </button>
 
           <div className="nav-group-title">Configuration</div>
@@ -180,6 +154,18 @@ export default function AdminLayout({ currentUser, onLogout, onExitAdmin }) {
           >
             <span className="item-icon">👤</span>
             <span>Owner Profile</span>
+          </button>
+
+          <div className="nav-group-title">Public Website</div>
+          <button
+            className="sidebar-nav-item"
+            onClick={() => {
+              setMobileDrawerOpen(false);
+              onExitAdmin();
+            }}
+          >
+            <span className="item-icon">🌐</span>
+            <span>Landing Pages</span>
           </button>
         </nav>
 
@@ -240,8 +226,8 @@ export default function AdminLayout({ currentUser, onLogout, onExitAdmin }) {
           {activeTab === 'messages' && <MessageManager />}
           {activeTab === 'process' && <ProcessManager />}
           {activeTab === 'applications' && <ApplicationManager />}
+          {activeTab === 'standards' && <StandardManager />}
           {activeTab === 'certifications' && <CertificationManager />}
-          {activeTab === 'media' && <MediaManager />}
           {activeTab === 'homepage' && <HomepageManager />}
           {activeTab === 'settings' && <SettingsManager />}
           {activeTab === 'activity' && <ActivityLogManager />}

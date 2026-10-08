@@ -1,12 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   IconRope,
   IconSearch,
-  IconX,
-  IconCheckCircle,
-  IconPhone,
-  IconMail,
-  IconMapPin
+  IconX
 } from '../../components/Icons';
 import {
   fetchInquiries,
@@ -23,11 +19,7 @@ export default function QuoteManager() {
   const [internalNoteInput, setInternalNoteInput] = useState('');
   const [updatingNote, setUpdatingNote] = useState(false);
 
-  useEffect(() => {
-    loadQuotes();
-  }, []);
-
-  const loadQuotes = async () => {
+  const loadQuotes = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchInquiries();
@@ -37,7 +29,11 @@ export default function QuoteManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadQuotes();
+  }, [loadQuotes]);
 
   const handleStatusChange = async (quoteId, newStatus) => {
     try {

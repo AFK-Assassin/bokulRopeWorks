@@ -1,4 +1,3 @@
-import React from 'react';
 import { IconX, IconCheckCircle, IconShieldCheck, IconRope, IconTruck } from './Icons';
 
 export default function ProductDetailModal({ product, isOpen, onClose, onRequestQuote }) {

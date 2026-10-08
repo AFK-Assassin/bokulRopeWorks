@@ -1,11 +1,10 @@
-import React from 'react';
 import { IconWhatsApp, IconRope } from './Icons';
 
 export default function FloatingCTA({ onOpenQuote }) {
   return (
     <div className="floating-cta-container">
       <a
-        href="https://wa.me/917044620790?text=Hello%20Bokul%20Rope%20Works,%20I%20am%20interested%20in%20a%20commercial%20jute%20rope%20quotation."
+        href="https://wa.me/917044620790?text=Hello%2C%20I%E2%80%99m%20interested%20in%20commercial-grade%20jute%20rope.%20Please%20share%20your%20quotation."
         target="_blank"
         rel="noopener noreferrer"
         className="floating-btn floating-wa"

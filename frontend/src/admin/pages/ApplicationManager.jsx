@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { IconShieldCheck, IconX, IconCheckCircle } from '../../components/Icons';
+import { useState, useEffect, useCallback } from 'react';
+import { IconX } from '../../components/Icons';
 import {
   fetchApplications,
   createApplicationApi,
@@ -17,17 +17,13 @@ export default function ApplicationManager() {
     description: '',
     suitableProducts: '',
     benefits: '',
-    imageUrl: '/images/bokul_rope_works_hero.webp',
+    imageUrl: '/images/Mill_2.webp',
     isPublished: true,
     order: 0,
   });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadApps();
-  }, []);
-
-  const loadApps = async () => {
+  const loadApps = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchApplications();
@@ -37,7 +33,11 @@ export default function ApplicationManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadApps();
+  }, [loadApps]);
 
   const handleOpenAdd = () => {
     setEditingApp(null);

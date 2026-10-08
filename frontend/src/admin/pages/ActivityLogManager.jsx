@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { IconSearch, IconShieldCheck } from '../../components/Icons';
 import { fetchActivityLogs } from '../../services/api';
 
@@ -8,11 +8,7 @@ export default function ActivityLogManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
 
-  useEffect(() => {
-    loadLogs();
-  }, []);
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchActivityLogs({ limit: 100 });
@@ -22,7 +18,11 @@ export default function ActivityLogManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
 
   const filteredLogs = logs.filter((log) => {
     const matchCat = categoryFilter === 'All' || log.category === categoryFilter;

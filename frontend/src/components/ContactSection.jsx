@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { IconPhone, IconMail, IconMapPin, IconWhatsApp, IconCheckCircle } from './Icons';
 import { submitInquiry } from '../services/api';
 

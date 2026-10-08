@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MANUFACTURING_STEPS } from '../data/productsData';
 import { fetchProcessSteps } from '../services/api';
 import { IconShieldCheck, IconFactory } from './Icons';
@@ -6,11 +6,7 @@ import { IconShieldCheck, IconFactory } from './Icons';
 export default function ManufacturingProcess({ onOpenQuote }) {
   const [liveSteps, setLiveSteps] = useState(null);
 
-  useEffect(() => {
-    loadSteps();
-  }, []);
-
-  const loadSteps = async () => {
+  const loadSteps = useCallback(async () => {
     try {
       const data = await fetchProcessSteps();
       if (data && data.length > 0) {
@@ -26,7 +22,11 @@ export default function ManufacturingProcess({ onOpenQuote }) {
     } catch {
       // Fallback to static rich data
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadSteps();
+  }, [loadSteps]);
 
   const steps = liveSteps || MANUFACTURING_STEPS;
 

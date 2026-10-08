@@ -5,6 +5,29 @@ import { IconPhone, IconMail } from './Icons';
 export default function Navbar({ onOpenQuote, onOpenAdmin }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const handleNavClick = (e, targetHash) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+
+    // If on a different path (e.g. admin or login), navigate to root landing page with hash
+    if (window.location.pathname !== '/') {
+      window.history.pushState({}, '', '/' + (targetHash || '#home'));
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      return;
+    }
+
+    // Update URL hash and smooth scroll to section
+    const elementId = (targetHash || '#home').replace('#', '');
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      window.history.pushState({}, '', targetHash || '#home');
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.history.pushState({}, '', '#home');
+    }
+  };
+
   return (
     <>
       {/* Minimal Top Contact Strip */}
@@ -35,7 +58,7 @@ export default function Navbar({ onOpenQuote, onOpenAdmin }) {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-          <a href="#home" className="brand-logo">
+          <a href="#home" className="brand-logo" onClick={(e) => handleNavClick(e, '#home')}>
             <img 
               src="/images/BRW-logo.webp" 
               alt="Bokul Rope Works Logo" 
@@ -49,13 +72,13 @@ export default function Navbar({ onOpenQuote, onOpenAdmin }) {
 
           <nav className="desktop-nav">
             <ul className="nav-links">
-              <li><a href="#home">Home</a></li>
-              <li><a href="#products">Products</a></li>
-              <li><a href="#process">Process</a></li>
-              <li><a href="#applications">Applications</a></li>
-              <li><a href="#quality">Standards</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
+              <li><a href="#home" onClick={(e) => handleNavClick(e, '#home')}>Home</a></li>
+              <li><a href="#products" onClick={(e) => handleNavClick(e, '#products')}>Products</a></li>
+              <li><a href="#process" onClick={(e) => handleNavClick(e, '#process')}>Process</a></li>
+              <li><a href="#applications" onClick={(e) => handleNavClick(e, '#applications')}>Applications</a></li>
+              <li><a href="#quality" onClick={(e) => handleNavClick(e, '#quality')}>Standards</a></li>
+              <li><a href="#about" onClick={(e) => handleNavClick(e, '#about')}>About</a></li>
+              <li><a href="#contact" onClick={(e) => handleNavClick(e, '#contact')}>Contact</a></li>
             </ul>
           </nav>
 
@@ -91,13 +114,13 @@ export default function Navbar({ onOpenQuote, onOpenAdmin }) {
               transition={{ duration: 0.3 }}
             >
               <ul className="mobile-nav-links">
-                <li><a href="#home" onClick={() => setMobileMenuOpen(false)}>Home</a></li>
-                <li><a href="#products" onClick={() => setMobileMenuOpen(false)}>Products</a></li>
-                <li><a href="#process" onClick={() => setMobileMenuOpen(false)}>Manufacturing Process</a></li>
-                <li><a href="#applications" onClick={() => setMobileMenuOpen(false)}>Applications</a></li>
-                <li><a href="#quality" onClick={() => setMobileMenuOpen(false)}>Quality Standards</a></li>
-                <li><a href="#about" onClick={() => setMobileMenuOpen(false)}>About Us</a></li>
-                <li><a href="#contact" onClick={() => setMobileMenuOpen(false)}>Contact Desk</a></li>
+                <li><a href="#home" onClick={(e) => handleNavClick(e, '#home')}>Landing Pages</a></li>
+                <li><a href="#products" onClick={(e) => handleNavClick(e, '#products')}>Products</a></li>
+                <li><a href="#process" onClick={(e) => handleNavClick(e, '#process')}>Manufacturing Process</a></li>
+                <li><a href="#applications" onClick={(e) => handleNavClick(e, '#applications')}>Applications</a></li>
+                <li><a href="#quality" onClick={(e) => handleNavClick(e, '#quality')}>Quality Standards</a></li>
+                <li><a href="#about" onClick={(e) => handleNavClick(e, '#about')}>About Us</a></li>
+                <li><a href="#contact" onClick={(e) => handleNavClick(e, '#contact')}>Contact Desk</a></li>
               </ul>
               <div style={{ marginTop: '20px' }}>
                 <button 

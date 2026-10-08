@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { IconShieldCheck, IconX, IconCheckCircle } from '../../components/Icons';
+import { useState, useEffect, useCallback } from 'react';
+import { IconShieldCheck, IconX } from '../../components/Icons';
 import {
   fetchCertifications,
   createCertificationApi,
@@ -25,11 +25,7 @@ export default function CertificationManager() {
   });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadCerts();
-  }, []);
-
-  const loadCerts = async () => {
+  const loadCerts = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchCertifications();
@@ -39,7 +35,11 @@ export default function CertificationManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadCerts();
+  }, [loadCerts]);
 
   const handleOpenAdd = () => {
     setEditingCert(null);

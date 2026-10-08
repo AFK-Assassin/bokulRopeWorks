@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDB } from './config/db.js';
 import productRoutes from './routes/productRoutes.js';
 import inquiryRoutes from './routes/inquiryRoutes.js';
@@ -16,11 +18,16 @@ import messageRoutes from './routes/messageRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import mediaRoutes from './routes/mediaRoutes.js';
 import activityRoutes from './routes/activityRoutes.js';
+import standardRoutes from './routes/standardRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { User } from './models/User.js';
+import { seedInitialData } from './services/seedService.js';
 
 // Load environment variables
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -39,7 +46,6 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (curl, same-origin) or local development origins
       if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
         callback(null, true);
       } else {
@@ -55,17 +61,20 @@ app.use(
 // Enable preflight for all routes
 app.options('*', cors());
 
-// 2. HTTP Security Headers (Helmet)
+// 2. HTTP Security Headers (Helmet) - Allow static uploads rendering
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
   })
 );
 
-// 3. Global Rate Limiter for DDoS Protection (Skip OPTIONS preflight)
+// 3. Static Uploads Folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// 4. Global Rate Limiter for DDoS Protection (Skip OPTIONS preflight)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300,
+  max: 600,
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => req.method === 'OPTIONS',
@@ -76,10 +85,10 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-// 4. Strict Rate Limiter for Login & Inquiries (Skip OPTIONS preflight)
+// 5. Strict Rate Limiter for Login & Inquiries (Skip OPTIONS preflight)
 const strictAuthLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 50,
+  max: 100,
   skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
@@ -89,11 +98,11 @@ const strictAuthLimiter = rateLimit({
 app.use('/api/auth/login', strictAuthLimiter);
 app.use('/api/inquiries', strictAuthLimiter);
 
-// 5. Payload Capping
-app.use(express.json({ limit: '500kb' }));
-app.use(express.urlencoded({ extended: true, limit: '500kb' }));
+// 6. Payload Capping
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 6. NoSQL Query Injection Protection
+// 7. NoSQL Query Injection Protection
 app.use(mongoSanitize());
 
 // Base Route & Health Check
@@ -119,11 +128,12 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/standards', standardRoutes);
 
-// Auto-seed Default Admin Account if none exists
+// Auto-seed Default Admin Account & Initial Mill Data if empty
 const seedDefaultAdmin = async () => {
   try {
-    const adminCount = await User.countDocuments({ role: 'admin' });
+    const adminCount = await User.countDocuments({ role: { $in: ['admin', 'owner'] } });
     if (adminCount === 0) {
       await User.create({
         name: 'Bokul Rope Admin',
@@ -133,11 +143,12 @@ const seedDefaultAdmin = async () => {
       });
       console.log('[Security] Created default admin account: admin@bokulrope.com');
     }
+    await seedInitialData();
   } catch (err) {
     console.warn('[Security Seed Warning]:', err.message);
   }
 };
-setTimeout(seedDefaultAdmin, 3000);
+setTimeout(seedDefaultAdmin, 2000);
 
 // 404 Handler
 app.use('*', (req, res) => {
@@ -152,5 +163,5 @@ app.use(errorHandler);
 
 // Start Server
 app.listen(PORT, () => {
-  console.log(`[Server] Bokul Rope Works Secured Backend running on port ${PORT} (http://localhost:${PORT})`);
+  console.log(`[Server] Bokul Rope Works Secured Backend running on port ${PORT} (http://localhost:${PORT}) - Standards API Active`);
 });

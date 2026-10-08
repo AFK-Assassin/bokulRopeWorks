@@ -1,4 +1,12 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== 'undefined' && window.location.hostname) {
+    return `http://${window.location.hostname}:5000/api`;
+  }
+  return 'http://localhost:5000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Helper to get auth header with JWT token
 const getAuthHeaders = () => {
@@ -9,7 +17,14 @@ const getAuthHeaders = () => {
   };
 };
 
-// --- AUTHENTICATION API ---
+const getAuthOnlyHeaders = () => {
+  const token = localStorage.getItem('adminToken');
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
+// --- AUTHENTICATION & MULTI-ADMIN API ---
 
 export const loginAdmin = async (email, password) => {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -63,6 +78,43 @@ export const getAdminProfile = async () => {
   }
   const data = await response.json();
   return data.user;
+};
+
+export const fetchAdminsApi = async () => {
+  const response = await fetch(`${API_BASE_URL}/auth/admins`, {
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Failed to fetch administrators');
+  }
+  const data = await response.json();
+  return data.data;
+};
+
+export const registerAdminApi = async (adminData) => {
+  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(adminData),
+  });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Failed to register administrator');
+  }
+  return await response.json();
+};
+
+export const deleteAdminApi = async (id) => {
+  const response = await fetch(`${API_BASE_URL}/auth/admins/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Failed to delete administrator');
+  }
+  return await response.json();
 };
 
 export const updateAdminProfile = async (profileData) => {
@@ -148,7 +200,7 @@ export const fetchProducts = async (category) => {
     if (!response.ok) throw new Error('Could not fetch products');
     const result = await response.json();
     return result.data;
-  } catch (err) {
+  } catch {
     return null; // Signals component to use fallback
   }
 };
@@ -214,7 +266,7 @@ export const fetchCategories = async () => {
     if (!response.ok) throw new Error('Failed to fetch categories');
     const data = await response.json();
     return data.data;
-  } catch (err) {
+  } catch {
     return [];
   }
 };
@@ -350,7 +402,7 @@ export const fetchProcessSteps = async () => {
     if (!response.ok) throw new Error('Failed to fetch process steps');
     const data = await response.json();
     return data.data;
-  } catch (err) {
+  } catch {
     return [];
   }
 };
@@ -403,7 +455,7 @@ export const fetchApplications = async () => {
     if (!response.ok) throw new Error('Failed to fetch applications');
     const data = await response.json();
     return data.data;
-  } catch (err) {
+  } catch {
     return [];
   }
 };
@@ -456,7 +508,7 @@ export const fetchCertifications = async () => {
     if (!response.ok) throw new Error('Failed to fetch certifications');
     const data = await response.json();
     return data.data;
-  } catch (err) {
+  } catch {
     return [];
   }
 };
@@ -507,7 +559,7 @@ export const fetchWebsiteSettings = async () => {
     if (!response.ok) throw new Error('Failed to fetch settings');
     const data = await response.json();
     return data.data;
-  } catch (err) {
+  } catch {
     return null;
   }
 };
@@ -554,6 +606,19 @@ export const createMediaApi = async (mediaData) => {
   return await response.json();
 };
 
+export const uploadMediaApi = async (formData) => {
+  const response = await fetch(`${API_BASE_URL}/media/upload`, {
+    method: 'POST',
+    headers: getAuthOnlyHeaders(),
+    body: formData,
+  });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Failed to upload media file');
+  }
+  return await response.json();
+};
+
 export const deleteMediaApi = async (id) => {
   const response = await fetch(`${API_BASE_URL}/media/${id}`, {
     method: 'DELETE',
@@ -580,3 +645,58 @@ export const fetchActivityLogs = async (params = {}) => {
   const data = await response.json();
   return data.data;
 };
+
+// --- TECHNICAL STANDARDS API ---
+
+export const fetchTechnicalStandards = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/standards`, {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch technical standards');
+    const data = await response.json();
+    return data.data;
+  } catch (err) {
+    console.warn('[Technical Standards API Warning]:', err.message);
+    return null;
+  }
+};
+
+export const createStandardApi = async (standardData) => {
+  const response = await fetch(`${API_BASE_URL}/standards`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(standardData),
+  });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Failed to create technical standard');
+  }
+  return await response.json();
+};
+
+export const updateStandardApi = async (id, standardData) => {
+  const response = await fetch(`${API_BASE_URL}/standards/${id}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(standardData),
+  });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Failed to update technical standard');
+  }
+  return await response.json();
+};
+
+export const deleteStandardApi = async (id) => {
+  const response = await fetch(`${API_BASE_URL}/standards/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Failed to delete technical standard');
+  }
+  return await response.json();
+};
+

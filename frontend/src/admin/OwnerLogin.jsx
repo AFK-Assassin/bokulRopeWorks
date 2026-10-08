@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { IconShieldCheck, IconEye, IconEyeOff, IconArrowRight, IconX } from '../components/Icons';
+import { useState } from 'react';
+import { IconShieldCheck, IconEye, IconEyeOff } from '../components/Icons';
 import { loginAdmin } from '../services/api';
 
 export default function OwnerLogin({ onLoginSuccess, onBackToSite }) {
-  const [email, setEmail] = useState('admin@bokulrope.com');
-  const [password, setPassword] = useState('Admin@Bokul2026!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -43,7 +43,7 @@ export default function OwnerLogin({ onLoginSuccess, onBackToSite }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="owner-login-form">
+        <form onSubmit={handleSubmit} className="owner-login-form" autoComplete="off">
           <div className="owner-form-group">
             <label>Owner / Admin Email</label>
             <input
@@ -52,7 +52,7 @@ export default function OwnerLogin({ onLoginSuccess, onBackToSite }) {
               placeholder="admin@bokulrope.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              autoComplete="username"
+              autoComplete="off"
             />
           </div>
 
@@ -65,7 +65,7 @@ export default function OwnerLogin({ onLoginSuccess, onBackToSite }) {
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
+                autoComplete="new-password"
               />
               <button
                 type="button"

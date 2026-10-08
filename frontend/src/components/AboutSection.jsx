@@ -1,5 +1,4 @@
-import React from 'react';
-import { IconFactory, IconMapPin, IconShieldCheck, IconCheckCircle } from './Icons';
+import { IconFactory, IconMapPin, IconCheckCircle } from './Icons';
 
 export default function AboutSection({ onOpenQuote }) {
   return (

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { IconMail, IconSearch, IconX, IconCheckCircle, IconPhone, IconMapPin } from '../../components/Icons';
+import { useState, useEffect, useCallback } from 'react';
+import { IconMail, IconSearch, IconX } from '../../components/Icons';
 import { fetchMessages, markMessageReadApi, deleteMessageApi } from '../../services/api';
 
 export default function MessageManager() {
@@ -9,11 +9,7 @@ export default function MessageManager() {
   const [filterStatus, setFilterStatus] = useState('All');
   const [selectedMessage, setSelectedMessage] = useState(null);
 
-  useEffect(() => {
-    loadMessages();
-  }, []);
-
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchMessages();
@@ -23,7 +19,11 @@ export default function MessageManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadMessages();
+  }, [loadMessages]);
 
   const handleToggleRead = async (msg) => {
     try {

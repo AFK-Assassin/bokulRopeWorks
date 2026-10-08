@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { APPLICATIONS } from '../data/productsData';
 import { fetchApplications } from '../services/api';
 import { IconArrowRight } from './Icons';
@@ -6,11 +6,7 @@ import { IconArrowRight } from './Icons';
 export default function ApplicationsSection({ onOpenQuote }) {
   const [liveApps, setLiveApps] = useState(null);
 
-  useEffect(() => {
-    loadApps();
-  }, []);
-
-  const loadApps = async () => {
+  const loadApps = useCallback(async () => {
     try {
       const data = await fetchApplications();
       if (data && data.length > 0) {
@@ -28,7 +24,11 @@ export default function ApplicationsSection({ onOpenQuote }) {
     } catch {
       // Fallback
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadApps();
+  }, [loadApps]);
 
   const apps = liveApps || APPLICATIONS;
 

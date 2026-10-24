@@ -60,7 +60,12 @@ app.use(
       // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
       
-      const isAllowed = allowedOrigins.includes(origin) || (!isProduction && origin.startsWith('http://localhost:'));
+      const isAllowed =
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.pages.dev') ||
+        origin.endsWith('.workers.dev') ||
+        origin.endsWith('.vercel.app') ||
+        (!isProduction && origin.startsWith('http://localhost:'));
       if (isAllowed) {
         callback(null, true);
       } else {

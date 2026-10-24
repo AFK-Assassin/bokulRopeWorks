@@ -4,8 +4,8 @@ const getApiBaseUrl = () => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return `http://${window.location.hostname}:5000/api`;
     }
-    // In production or custom domains, default to same-origin relative /api
-    return '/api';
+    // In production or custom domains, default to the live Render backend API
+    return 'https://bokulropeworks.onrender.com/api';
   }
   return 'http://localhost:5000/api';
 };

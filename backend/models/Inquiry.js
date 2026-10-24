@@ -54,7 +54,22 @@ const inquirySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['NEW', 'CONTACTED', 'QUOTED', 'NEGOTIATING', 'WON', 'LOST', 'New', 'Contacted', 'Quoted', 'Closed'],
+      enum: [
+        'NEW',
+        'CONTACTED',
+        'QUOTED',
+        'NEGOTIATING',
+        'WON',
+        'LOST',
+        'CLOSED',
+        'New',
+        'Contacted',
+        'Quoted',
+        'Negotiating',
+        'Won',
+        'Lost',
+        'Closed',
+      ],
       default: 'NEW',
     },
     internalNotes: {

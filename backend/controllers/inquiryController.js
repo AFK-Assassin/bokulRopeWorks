@@ -71,11 +71,12 @@ export const getInquiries = async (req, res, next) => {
     if (archived === 'true') {
       query.isArchived = true;
     } else {
-      query.isArchived = false;
+      query.isArchived = { $ne: true };
     }
 
     if (status && status !== 'All') {
-      query.status = status.toUpperCase();
+      const upper = status.trim().toUpperCase();
+      query.status = { $regex: new RegExp(`^${upper}$`, 'i') };
     }
 
     if (search) {
@@ -103,9 +104,42 @@ export const updateInquiryStatus = async (req, res, next) => {
   try {
     const { status, internalNotes, isArchived } = req.body;
     let updateFields = {};
-    if (status) updateFields.status = status.toUpperCase();
+
+    if (status !== undefined) {
+      if (typeof status !== 'string' || !status.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Status must be a non-empty string',
+        });
+      }
+      const upper = status.trim().toUpperCase();
+      const validStatuses = [
+        'NEW',
+        'CONTACTED',
+        'QUOTED',
+        'NEGOTIATING',
+        'WON',
+        'LOST',
+        'CLOSED',
+      ];
+      if (!validStatuses.includes(upper)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status "${status}". Supported values are: ${validStatuses.join(', ')}`,
+        });
+      }
+      updateFields.status = upper;
+    }
+
     if (internalNotes !== undefined) updateFields.internalNotes = internalNotes;
-    if (isArchived !== undefined) updateFields.isArchived = isArchived;
+    if (isArchived !== undefined) updateFields.isArchived = Boolean(isArchived);
+
+    if (Object.keys(updateFields).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid update fields provided',
+      });
+    }
 
     const inquiry = await Inquiry.findByIdAndUpdate(req.params.id, updateFields, {
       new: true,
@@ -116,14 +150,19 @@ export const updateInquiryStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Inquiry not found' });
     }
 
-    await ActivityLog.create({
-      action: `Updated Quote #${inquiry._id.toString().slice(-6)} Status: ${inquiry.status}`,
-      category: 'Quote',
-      adminEmail: req.user?.email || 'admin@bokulrope.com',
-    });
+    try {
+      await ActivityLog.create({
+        action: `Updated Quote #${inquiry._id.toString().slice(-6)} Status: ${inquiry.status}`,
+        category: 'Quote',
+        adminEmail: req.user?.email || 'admin@bokulrope.com',
+      });
+    } catch (logErr) {
+      console.warn('[ActivityLog Warning]:', logErr.message);
+    }
 
     res.status(200).json({
       success: true,
+      message: `Quote #${inquiry._id.toString().slice(-6)} status updated to ${inquiry.status}`,
       data: inquiry,
     });
   } catch (error) {

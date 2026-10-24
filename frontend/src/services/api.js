@@ -335,11 +335,15 @@ export const updateInquiryStatusApi = async (id, payload) => {
     headers: getAuthHeaders(),
     body: JSON.stringify(body),
   });
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.message || 'Failed to update quote inquiry');
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(`Server returned HTTP ${response.status}`);
   }
-  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.message || 'Failed to update quote inquiry');
+  }
   return data.data;
 };
 

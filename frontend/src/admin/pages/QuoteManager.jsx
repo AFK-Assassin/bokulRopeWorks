@@ -18,6 +18,16 @@ export default function QuoteManager() {
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [internalNoteInput, setInternalNoteInput] = useState('');
   const [updatingNote, setUpdatingNote] = useState(false);
+  const [updatingStatusId, setUpdatingStatusId] = useState(null);
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
+
+  useEffect(() => {
+    if (!feedback.message) return;
+    const timer = setTimeout(() => {
+      setFeedback({ type: '', message: '' });
+    }, 4500);
+    return () => clearTimeout(timer);
+  }, [feedback]);
 
   const loadQuotes = useCallback(async () => {
     setLoading(true);
@@ -26,6 +36,10 @@ export default function QuoteManager() {
       setQuotes(Array.isArray(data) ? data : []);
     } catch (err) {
       console.warn('Quotes load error:', err);
+      setFeedback({
+        type: 'error',
+        message: 'Failed to load quotes. Please check network connection.',
+      });
     } finally {
       setLoading(false);
     }
@@ -36,30 +50,73 @@ export default function QuoteManager() {
   }, [loadQuotes]);
 
   const handleStatusChange = async (quoteId, newStatus) => {
+    if (updatingStatusId) return; // Prevent concurrent/duplicate clicks
+    const targetQuote = quotes.find((q) => q._id === quoteId);
+    const previousStatus = targetQuote?.status || 'NEW';
+    if (previousStatus.toUpperCase() === newStatus.toUpperCase()) return;
+
+    setUpdatingStatusId(quoteId);
+    setFeedback({ type: '', message: '' });
+
+    // Optimistic update so UI responds immediately
+    setQuotes((prev) =>
+      prev.map((q) => (q._id === quoteId ? { ...q, status: newStatus } : q))
+    );
+    if (selectedQuote && selectedQuote._id === quoteId) {
+      setSelectedQuote((prev) => ({ ...prev, status: newStatus }));
+    }
+
     try {
-      await updateInquiryStatusApi(quoteId, { status: newStatus });
+      const updated = await updateInquiryStatusApi(quoteId, { status: newStatus });
+      const confirmedStatus = (updated?.status || newStatus).toUpperCase();
+
+      // Ensure state is updated with server-confirmed object
       setQuotes((prev) =>
-        prev.map((q) => (q._id === quoteId ? { ...q, status: newStatus } : q))
+        prev.map((q) => (q._id === quoteId ? { ...q, ...updated, status: confirmedStatus } : q))
       );
       if (selectedQuote && selectedQuote._id === quoteId) {
-        setSelectedQuote((prev) => ({ ...prev, status: newStatus }));
+        setSelectedQuote((prev) => ({ ...prev, ...updated, status: confirmedStatus }));
       }
+      setFeedback({
+        type: 'success',
+        message: `Quote status updated to "${confirmedStatus}" successfully.`,
+      });
     } catch (err) {
-      alert(err.message || 'Failed to update quote status');
+      // Revert optimistic update on failure
+      setQuotes((prev) =>
+        prev.map((q) => (q._id === quoteId ? { ...q, status: previousStatus } : q))
+      );
+      if (selectedQuote && selectedQuote._id === quoteId) {
+        setSelectedQuote((prev) => ({ ...prev, status: previousStatus }));
+      }
+      setFeedback({
+        type: 'error',
+        message: err.message || 'Failed to update quote status. Changes reverted.',
+      });
+    } finally {
+      setUpdatingStatusId(null);
     }
   };
 
   const handleSaveInternalNote = async () => {
     if (!selectedQuote) return;
     setUpdatingNote(true);
+    setFeedback({ type: '', message: '' });
     try {
       await updateInquiryStatusApi(selectedQuote._id, { internalNotes: internalNoteInput });
       setSelectedQuote((prev) => ({ ...prev, internalNotes: internalNoteInput }));
       setQuotes((prev) =>
         prev.map((q) => (q._id === selectedQuote._id ? { ...q, internalNotes: internalNoteInput } : q))
       );
+      setFeedback({
+        type: 'success',
+        message: 'Internal plant notes saved successfully.',
+      });
     } catch (err) {
-      alert(err.message || 'Failed to save notes');
+      setFeedback({
+        type: 'error',
+        message: err.message || 'Failed to save notes.',
+      });
     } finally {
       setUpdatingNote(false);
     }
@@ -128,7 +185,7 @@ export default function QuoteManager() {
     document.body.removeChild(link);
   };
 
-  const STATUS_OPTIONS = ['NEW', 'CONTACTED', 'QUOTED', 'NEGOTIATING', 'WON', 'LOST'];
+  const STATUS_OPTIONS = ['NEW', 'CONTACTED', 'QUOTED', 'NEGOTIATING', 'WON', 'LOST', 'CLOSED'];
 
   // Filter quotes
   const filteredQuotes = quotes.filter((q) => {
@@ -150,6 +207,23 @@ export default function QuoteManager() {
 
   return (
     <div className="admin-page-content">
+      {/* Action Feedback Banner */}
+      {feedback.message && (
+        <div className={`admin-feedback-toast ${feedback.type === 'error' ? 'toast-error' : 'toast-success'}`}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>{feedback.type === 'error' ? '⚠️' : '✅'}</span>
+            <span>{feedback.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFeedback({ type: '', message: '' })}
+            aria-label="Dismiss message"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Top Status Tabs */}
       <div className="status-pipeline-tabs">
         <button
@@ -250,7 +324,9 @@ export default function QuoteManager() {
                       <select
                         className={`status-select status-${(q.status || 'NEW').toLowerCase()}`}
                         value={(q.status || 'NEW').toUpperCase()}
+                        disabled={updatingStatusId === q._id}
                         onChange={(e) => handleStatusChange(q._id, e.target.value)}
+                        aria-label={`Change status for ${q.fullName}`}
                       >
                         {STATUS_OPTIONS.map((st) => (
                           <option key={st} value={st}>{st}</option>
@@ -317,7 +393,9 @@ export default function QuoteManager() {
                   <select
                     className={`status-select status-${(selectedQuote.status || 'NEW').toLowerCase()}`}
                     value={(selectedQuote.status || 'NEW').toUpperCase()}
+                    disabled={updatingStatusId === selectedQuote._id}
                     onChange={(e) => handleStatusChange(selectedQuote._id, e.target.value)}
+                    aria-label="Change status in detail view"
                   >
                     {STATUS_OPTIONS.map((st) => (
                       <option key={st} value={st}>{st}</option>

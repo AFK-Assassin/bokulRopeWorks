@@ -1,6 +1,6 @@
 import { IconMapPin, IconPhone, IconMail, IconShieldCheck } from './Icons';
 
-export default function Footer({ onOpenQuote, onOpenAdmin }) {
+export default function Footer({ onOpenQuote, onOpenAdmin, onNavigate }) {
   return (
     <footer className="footer">
       <div className="container">
@@ -12,6 +12,8 @@ export default function Footer({ onOpenQuote, onOpenAdmin }) {
                 src="/images/BRW-logo.webp" 
                 alt="Bokul Rope Works Logo" 
                 className="brand-logo-img" 
+                width="42"
+                height="42"
               />
               <div className="brand-text">
                 Bokul Rope Works
@@ -87,8 +89,22 @@ export default function Footer({ onOpenQuote, onOpenAdmin }) {
           <div className="footer-copy">
             © {new Date().getFullYear()} <strong>Bokul Rope Works</strong>. All rights reserved. Registered in West Bengal, India.
           </div>
-          <div className="footer-meta">
-            <span>B2B Manufacturer • 100% Pure Natural Fibre Products</span>
+          <div className="footer-meta" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <a 
+              href="/privacy-policy" 
+              onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate('/privacy-policy'); else window.location.href = '/privacy-policy'; }}
+              style={{ color: 'var(--text-light)', textDecoration: 'none' }}
+            >
+              Privacy Policy
+            </a>
+            <span style={{ color: 'var(--border)' }}>•</span>
+            <a 
+              href="/terms-and-conditions" 
+              onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate('/terms-and-conditions'); else window.location.href = '/terms-and-conditions'; }}
+              style={{ color: 'var(--text-light)', textDecoration: 'none' }}
+            >
+              Terms & Conditions
+            </a>
           </div>
         </div>
       </div>

@@ -2,8 +2,20 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconPhone, IconMail } from './Icons';
 
-export default function Navbar({ onOpenQuote, onOpenAdmin }) {
+export default function Navbar({ onOpenQuote, onNavigateHome }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const scrollToSection = (targetHash) => {
+    const elementId = (targetHash || '#home').replace('#', '');
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      window.history.replaceState({}, '', targetHash || '#home');
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.history.replaceState({}, '', '#home');
+    }
+  };
 
   const handleNavClick = (e, targetHash) => {
     e.preventDefault();
@@ -13,19 +25,15 @@ export default function Navbar({ onOpenQuote, onOpenAdmin }) {
     if (window.location.pathname !== '/') {
       window.history.pushState({}, '', '/' + (targetHash || '#home'));
       window.dispatchEvent(new PopStateEvent('popstate'));
+      // Wait for React to render the landing page, then scroll
+      setTimeout(() => scrollToSection(targetHash), 400);
       return;
     }
 
-    // Update URL hash and smooth scroll to section
-    const elementId = (targetHash || '#home').replace('#', '');
-    const element = document.getElementById(elementId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      window.history.pushState({}, '', targetHash || '#home');
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      window.history.pushState({}, '', '#home');
-    }
+    // Small delay to let mobile menu close animation finish before scrolling
+    setTimeout(() => {
+      scrollToSection(targetHash);
+    }, 50);
   };
 
   return (
@@ -63,6 +71,8 @@ export default function Navbar({ onOpenQuote, onOpenAdmin }) {
               src="/images/BRW-logo.webp" 
               alt="Bokul Rope Works Logo" 
               className="brand-logo-img" 
+              width="42"
+              height="42"
             />
             <div className="brand-text">
               Bokul Rope Works
@@ -95,6 +105,8 @@ export default function Navbar({ onOpenQuote, onOpenAdmin }) {
               className="mobile-toggle"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle navigation menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-drawer"
             >
               <span className={`bar ${mobileMenuOpen ? 'open' : ''}`}></span>
               <span className={`bar ${mobileMenuOpen ? 'open' : ''}`}></span>
@@ -107,6 +119,7 @@ export default function Navbar({ onOpenQuote, onOpenAdmin }) {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div 
+              id="mobile-nav-drawer"
               className="mobile-menu-drawer"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
@@ -114,7 +127,7 @@ export default function Navbar({ onOpenQuote, onOpenAdmin }) {
               transition={{ duration: 0.3 }}
             >
               <ul className="mobile-nav-links">
-                <li><a href="#home" onClick={(e) => handleNavClick(e, '#home')}>Landing Pages</a></li>
+                <li><a href="#home" onClick={(e) => handleNavClick(e, '#home')}>Home</a></li>
                 <li><a href="#products" onClick={(e) => handleNavClick(e, '#products')}>Products</a></li>
                 <li><a href="#process" onClick={(e) => handleNavClick(e, '#process')}>Manufacturing Process</a></li>
                 <li><a href="#applications" onClick={(e) => handleNavClick(e, '#applications')}>Applications</a></li>

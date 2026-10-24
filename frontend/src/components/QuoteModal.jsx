@@ -13,7 +13,8 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
     requiredQuantity: '',
     deliveryLocation: '',
     diameter: '',
-    message: ''
+    message: '',
+    website: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -31,6 +32,18 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
     }
   }, [prefilledProduct]);
 
+  // Accessibility: Close modal on Escape key press
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleResetAndClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleChange = (e) => {
@@ -41,9 +54,38 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.phone) {
-      setErrorMsg('Please provide at least your Full Name and Phone / WhatsApp number.');
+
+    // Honeypot spam protection
+    if (formData.website) {
+      setSubmitted(true);
+      setEstimateData({
+        priceRangePerKg: '₹110 - ₹140 / kg',
+        leadTime: '3-5 Business Days',
+        estimatedTotalRange: 'Calculated based on specifications'
+      });
       return;
+    }
+
+    // Input Validation
+    const nameTrim = (formData.fullName || '').trim();
+    if (!nameTrim || nameTrim.length < 2) {
+      setErrorMsg('Please enter your full name (at least 2 characters).');
+      return;
+    }
+
+    const phoneTrim = (formData.phone || '').trim();
+    const phoneRegex = /^[+\d\s\-().]{7,20}$/;
+    if (!phoneTrim || !phoneRegex.test(phoneTrim)) {
+      setErrorMsg('Please enter a valid phone or WhatsApp number (7-20 digits/symbols).');
+      return;
+    }
+
+    if (formData.email && formData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        setErrorMsg('Please enter a valid email address (or leave it blank).');
+        return;
+      }
     }
 
     setLoading(true);
@@ -65,6 +107,20 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
   };
 
   const handleResetAndClose = () => {
+    if (submitted) {
+      setFormData({
+        fullName: '',
+        companyName: '',
+        email: '',
+        phone: '',
+        productInterest: prefilledProduct?.name || '3-Strand Hawser Laid Jute Rope',
+        requiredQuantity: '',
+        deliveryLocation: '',
+        diameter: prefilledProduct?.diameterRange || '',
+        message: '',
+        website: ''
+      });
+    }
     setSubmitted(false);
     setEstimateData(null);
     setErrorMsg('');
@@ -87,6 +143,9 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 10 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="qm-title"
         >
           <button className="modal-close" onClick={handleResetAndClose} aria-label="Close modal">
             <IconX size={18} />
@@ -163,7 +222,7 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
             <div>
               <div className="modal-header">
                 <div className="modal-tag">Direct Mill Estimation</div>
-                <h2>Request a Commercial Quote</h2>
+                <h2 id="qm-title">Request a Commercial Quote</h2>
                 <p>
                   Receive an instant indicative price range and technical specification breakdown calibrated for your requirement.
                 </p>
@@ -172,58 +231,78 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
               {errorMsg && <div className="form-error-banner">{errorMsg}</div>}
 
               <form onSubmit={handleSubmit} className="quote-form">
+                {/* Honeypot Spam Protection (Hidden from humans, traps bots) */}
+                <div style={{ display: 'none', opacity: 0, position: 'absolute', left: '-9999px' }} aria-hidden="true">
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={formData.website || ''}
+                    onChange={handleChange}
+                  />
+                </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Full Name <span className="req">*</span></label>
+                    <label htmlFor="qm-fullName">Full Name <span className="req">*</span></label>
                     <input
+                      id="qm-fullName"
                       type="text"
                       name="fullName"
                       required
                       placeholder="e.g. Rajesh Sharma"
                       value={formData.fullName}
                       onChange={handleChange}
+                      autoComplete="name"
                     />
                   </div>
                   <div className="form-group">
-                    <label>Company / Enterprise Name</label>
+                    <label htmlFor="qm-companyName">Company / Enterprise Name</label>
                     <input
+                      id="qm-companyName"
                       type="text"
                       name="companyName"
                       placeholder="e.g. Bengal Shipping Corp"
                       value={formData.companyName}
                       onChange={handleChange}
+                      autoComplete="organization"
                     />
                   </div>
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Business Email <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
+                    <label htmlFor="qm-email">Business Email <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
                     <input
+                      id="qm-email"
                       type="email"
                       name="email"
                       placeholder="name@company.com"
                       value={formData.email}
                       onChange={handleChange}
+                      autoComplete="email"
                     />
                   </div>
                   <div className="form-group">
-                    <label>Phone / WhatsApp <span className="req">*</span></label>
+                    <label htmlFor="qm-phone">Phone / WhatsApp <span className="req">*</span></label>
                     <input
+                      id="qm-phone"
                       type="tel"
                       name="phone"
                       required
                       placeholder="+91 70446 20790"
                       value={formData.phone}
                       onChange={handleChange}
+                      autoComplete="tel"
                     />
                   </div>
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Product Interest</label>
+                    <label htmlFor="qm-productInterest">Product Interest</label>
                     <select
+                      id="qm-productInterest"
                       name="productInterest"
                       value={formData.productInterest}
                       onChange={handleChange}
@@ -244,8 +323,9 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>Target Diameter / Gauge</label>
+                    <label htmlFor="qm-diameter">Target Diameter / Gauge</label>
                     <input
+                      id="qm-diameter"
                       type="text"
                       name="diameter"
                       placeholder="e.g. 16mm, 24mm, or 1/2 inch"
@@ -257,8 +337,9 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Estimated Quantity / Volume</label>
+                    <label htmlFor="qm-requiredQuantity">Estimated Quantity / Volume</label>
                     <input
+                      id="qm-requiredQuantity"
                       type="text"
                       name="requiredQuantity"
                       placeholder="e.g. 1000 kg, 50 coils, 1 Container"
@@ -267,8 +348,9 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Delivery City / Port Destination</label>
+                    <label htmlFor="qm-deliveryLocation">Delivery City / Port Destination</label>
                     <input
+                      id="qm-deliveryLocation"
                       type="text"
                       name="deliveryLocation"
                       placeholder="e.g. Kolkata, Mumbai, Mundra Port"
@@ -279,8 +361,9 @@ export default function QuoteModal({ isOpen, onClose, prefilledProduct }) {
                 </div>
 
                 <div className="form-group">
-                  <label>Specific Application & Custom Notes <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
+                  <label htmlFor="qm-message">Specific Application & Custom Notes <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
                   <textarea
+                    id="qm-message"
                     name="message"
                     rows="3"
                     placeholder="Describe intended application (scaffolding, marine lashing, export bundling), cut lengths, oiled/unoiled..."

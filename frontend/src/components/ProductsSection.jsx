@@ -46,7 +46,7 @@ export default function ProductsSection({ onSelectProduct, onOpenQuote }) {
           transition={{ duration: 0.5 }}
         >
           <div className="section-subtitle">Catalog & Specifications</div>
-          <h2 className="section-title">Industrial  Fibre Product Range</h2>
+          <h2 className="section-title">Industrial Fibre Product Range</h2>
           <p className="section-desc">
             Manufactured from selected Bengal golden fiber, precision-twisted to ensure minimal elongation and high tensile strength.
           </p>
@@ -73,6 +73,7 @@ export default function ProductsSection({ onSelectProduct, onOpenQuote }) {
               placeholder="Search diameter, type, or application..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search product range"
             />
             {searchQuery && (
               <button className="search-clear" onClick={() => setSearchQuery('')}>
@@ -110,9 +111,12 @@ export default function ProductsSection({ onSelectProduct, onOpenQuote }) {
                 >
                   <div className="product-card-image-wrap">
                     <img
-                      src={product.imageUrl || 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=800&q=80'}
+                      src={product.imageUrl || '/images/bokul_rope_works_hero.webp'}
                       alt={product.name}
                       className="product-card-img"
+                      loading="lazy"
+                      width="400"
+                      height="300"
                     />
                     <span className="product-category-badge">{product.category}</span>
                     {product.badge && <span className="product-highlight-badge">{product.badge}</span>}

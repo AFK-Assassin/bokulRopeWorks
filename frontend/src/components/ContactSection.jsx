@@ -11,7 +11,8 @@ export default function ContactSection() {
     productInterest: '3-Strand Hawser Laid Jute Rope',
     requiredQuantity: '',
     deliveryLocation: '',
-    message: ''
+    message: '',
+    website: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -27,9 +28,38 @@ export default function ContactSection() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.phone) {
-      setErrorMsg('Please provide at least your Full Name and Phone / WhatsApp number.');
+
+    // Honeypot spam protection
+    if (formData.website) {
+      setSubmitted(true);
+      setEstimateData({
+        priceRangePerKg: '₹110 - ₹140 / kg',
+        leadTime: '3-5 Business Days',
+        estimatedTotalRange: 'Calculated based on specifications'
+      });
       return;
+    }
+
+    // Input Validation
+    const nameTrim = (formData.fullName || '').trim();
+    if (!nameTrim || nameTrim.length < 2) {
+      setErrorMsg('Please enter your full name (at least 2 characters).');
+      return;
+    }
+
+    const phoneTrim = (formData.phone || '').trim();
+    const phoneRegex = /^[+\d\s\-().]{7,20}$/;
+    if (!phoneTrim || !phoneRegex.test(phoneTrim)) {
+      setErrorMsg('Please enter a valid phone or WhatsApp number (7-20 digits/symbols).');
+      return;
+    }
+
+    if (formData.email && formData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        setErrorMsg('Please enter a valid email address (or leave it blank).');
+        return;
+      }
     }
 
     setLoading(true);
@@ -196,7 +226,8 @@ export default function ContactSection() {
                       productInterest: '3-Strand Hawser Laid Jute Rope',
                       requiredQuantity: '',
                       deliveryLocation: '',
-                      message: ''
+                      message: '',
+                      website: ''
                     });
                   }}
                 >
@@ -205,6 +236,17 @@ export default function ContactSection() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="c-form">
+                {/* Honeypot Spam Protection (Hidden from humans, traps bots) */}
+                <div style={{ display: 'none', opacity: 0, position: 'absolute', left: '-9999px' }} aria-hidden="true">
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={formData.website || ''}
+                    onChange={handleChange}
+                  />
+                </div>
                 <h4>Submit Your Specification</h4>
                 <p className="c-form-subtitle">Fill in the parameters below for instant estimated rates.</p>
 
@@ -212,56 +254,65 @@ export default function ContactSection() {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Full Name <span className="req">*</span></label>
+                    <label htmlFor="cs-fullName">Full Name <span className="req">*</span></label>
                     <input
+                      id="cs-fullName"
                       type="text"
                       name="fullName"
                       required
                       placeholder="e.g. Alok Ghosh"
                       value={formData.fullName}
                       onChange={handleChange}
+                      autoComplete="name"
                     />
                   </div>
                   <div className="form-group">
-                    <label>Company / Enterprise Name</label>
+                    <label htmlFor="cs-companyName">Company / Enterprise Name</label>
                     <input
+                      id="cs-companyName"
                       type="text"
                       name="companyName"
                       placeholder="e.g. Bengal Logistics Ltd."
                       value={formData.companyName}
                       onChange={handleChange}
+                      autoComplete="organization"
                     />
                   </div>
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Business Email <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
+                    <label htmlFor="cs-email">Business Email <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
                     <input
+                      id="cs-email"
                       type="email"
                       name="email"
                       placeholder="name@company.com"
                       value={formData.email}
                       onChange={handleChange}
+                      autoComplete="email"
                     />
                   </div>
                   <div className="form-group">
-                    <label>Phone / WhatsApp Number <span className="req">*</span></label>
+                    <label htmlFor="cs-phone">Phone / WhatsApp Number <span className="req">*</span></label>
                     <input
+                      id="cs-phone"
                       type="tel"
                       name="phone"
                       required
                       placeholder="+91 70446 20790"
                       value={formData.phone}
                       onChange={handleChange}
+                      autoComplete="tel"
                     />
                   </div>
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Product Category</label>
+                    <label htmlFor="cs-productInterest">Product Category</label>
                     <select
+                      id="cs-productInterest"
                       name="productInterest"
                       value={formData.productInterest}
                       onChange={handleChange}
@@ -282,8 +333,9 @@ export default function ContactSection() {
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>Estimated Quantity / Weight</label>
+                    <label htmlFor="cs-requiredQuantity">Estimated Quantity / Weight</label>
                     <input
+                      id="cs-requiredQuantity"
                       type="text"
                       name="requiredQuantity"
                       placeholder="e.g. 1,000 kg, 20 coils, 1 Container"
@@ -294,8 +346,9 @@ export default function ContactSection() {
                 </div>
 
                 <div className="form-group">
-                  <label>Delivery Destination / Port</label>
+                  <label htmlFor="cs-deliveryLocation">Delivery Destination / Port</label>
                   <input
+                    id="cs-deliveryLocation"
                     type="text"
                     name="deliveryLocation"
                     placeholder="e.g. Kolkata, Nhava Sheva, Delhi, Chennai"
@@ -305,8 +358,9 @@ export default function ContactSection() {
                 </div>
 
                 <div className="form-group">
-                  <label>Specifications & Custom Notes <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
+                  <label htmlFor="cs-message">Specifications & Custom Notes <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
                   <textarea
+                    id="cs-message"
                     name="message"
                     rows="3"
                     placeholder="Mention target diameter (e.g. 16mm), cut lengths, oiled/unoiled requirement, or delivery schedule..."

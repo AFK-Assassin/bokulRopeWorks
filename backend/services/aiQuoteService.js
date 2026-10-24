@@ -3,19 +3,30 @@ import { GoogleGenAI } from '@google/genai';
 /**
  * Calibrated rule-based estimation formula for Bengal Jute manufacturing
  */
-function calculateFallbackEstimate({ productInterest, diameter, requiredQuantity, message }) {
+function calculateFallbackEstimate(inquiryData = {}) {
+  const productInterest = inquiryData.productInterest || inquiryData.productName || '';
+  const requiredQuantity = inquiryData.requiredQuantity || inquiryData.quantity || '';
+  const diameter = inquiryData.diameter || '';
+  const message = inquiryData.message || '';
+
   // Parse numeric quantity in KG if possible
   let qtyKg = null;
   const qtyMatch = (requiredQuantity || '').match(/(\d[\d,]*)/);
   if (qtyMatch) {
-    qtyKg = parseFloat(qtyMatch[1].replace(/,/g, ''));
+    const parsed = parseFloat(qtyMatch[1].replace(/,/g, ''));
+    if (!isNaN(parsed) && parsed > 0 && parsed <= 500000) {
+      qtyKg = parsed;
+    }
   }
 
   // Parse diameter in mm
   let diaMm = 16;
   const diaMatch = (diameter || message || '').match(/(\d+)\s*mm/i);
   if (diaMatch) {
-    diaMm = parseInt(diaMatch[1], 10);
+    const parsedDia = parseInt(diaMatch[1], 10);
+    if (!isNaN(parsedDia) && parsedDia >= 2 && parsedDia <= 120) {
+      diaMm = parsedDia;
+    }
   }
 
   let minRate = 110;
@@ -98,12 +109,12 @@ function calculateFallbackEstimate({ productInterest, diameter, requiredQuantity
   }
 
   // Volume discount adjustment
-  if (qtyKg && qtyKg >= 2000) {
-    minRate -= 8;
-    maxRate -= 8;
-  } else if (qtyKg && qtyKg >= 5000) {
+  if (qtyKg && qtyKg >= 5000) {
     minRate -= 15;
     maxRate -= 15;
+  } else if (qtyKg && qtyKg >= 2000) {
+    minRate -= 8;
+    maxRate -= 8;
   }
 
   let totalMin = null;
@@ -137,11 +148,19 @@ function calculateFallbackEstimate({ productInterest, diameter, requiredQuantity
 /**
  * Generate AI Quote with Gemini or Fallback
  */
-export async function generateQuoteEstimate(inquiryData) {
+export async function generateQuoteEstimate(inquiryData = {}) {
+  const normalizedData = {
+    productInterest: inquiryData.productInterest || inquiryData.productName || 'General Jute & Cordage',
+    diameter: inquiryData.diameter || '',
+    requiredQuantity: inquiryData.requiredQuantity || inquiryData.quantity || 'Commercial MOQ (500 kg)',
+    deliveryLocation: inquiryData.deliveryLocation || inquiryData.location || 'Pan-India',
+    message: inquiryData.message || '',
+  };
+
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return calculateFallbackEstimate(inquiryData);
+    return calculateFallbackEstimate(normalizedData);
   }
 
   try {
@@ -162,11 +181,11 @@ We manufacture and export:
 11. Custom OEM & Tender Specifications
 
 A B2B buyer has requested a quotation with the following details:
-- Product Interest: ${inquiryData.productInterest || 'General Jute & Cordage'}
-- Target Diameter/Gauge: ${inquiryData.diameter || 'Not specified'}
-- Estimated Quantity: ${inquiryData.requiredQuantity || 'Commercial MOQ (500 kg)'}
-- Delivery Location: ${inquiryData.deliveryLocation || 'Pan-India'}
-- Buyer Application & Notes: ${inquiryData.message || 'Standard commercial use'}
+- Product Interest: ${normalizedData.productInterest}
+- Target Diameter/Gauge: ${normalizedData.diameter || 'Not specified'}
+- Estimated Quantity: ${normalizedData.requiredQuantity}
+- Delivery Location: ${normalizedData.deliveryLocation}
+- Buyer Application & Notes: ${normalizedData.message || 'Standard commercial use'}
 
 Calculate and provide an industrial price range and technical recommendation strictly formatted as a valid JSON object matching this structure:
 {
@@ -201,7 +220,7 @@ Return ONLY the raw JSON object, without markdown quotes or backticks.
     return parsed;
   } catch (error) {
     console.warn('[AI Quote Warning] Gemini API call fallback triggered:', error.message);
-    return calculateFallbackEstimate(inquiryData);
+    return calculateFallbackEstimate(normalizedData);
   }
 }
 

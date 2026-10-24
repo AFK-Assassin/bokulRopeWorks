@@ -23,30 +23,42 @@ if (!fs.existsSync(frontendUploadDir)) {
   }
 }
 
+// Allowed upload extensions and MIME types
+const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.pdf']);
+const ALLOWED_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/pdf',
+]);
+
 // Multer Storage Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, backendUploadDir);
   },
   filename: (req, file, cb) => {
-    const cleanName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    // Sanitize base name and prevent path traversal
+    const safeBase = path.basename(file.originalname).replace(/[^a-zA-Z0-9.-]/g, '_');
+    const ext = path.extname(safeBase).toLowerCase();
+    const nameWithoutExt = path.basename(safeBase, ext).slice(0, 50);
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const finalName = `${uniqueSuffix}-${cleanName}`;
+    const finalName = `${uniqueSuffix}-${nameWithoutExt}${ext}`;
     cb(null, finalName);
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  const isImageMime = file.mimetype && file.mimetype.startsWith('image/');
-  const isPdf = file.mimetype === 'application/pdf';
-  const isImageExt = /\.(jpg|jpeg|png|webp|gif|svg|bmp|tiff|tif|avif|heic|heif|ico|jfif)$/i.test(
-    file.originalname || ''
-  );
+  const ext = path.extname(file.originalname || '').toLowerCase();
+  const mime = (file.mimetype || '').toLowerCase();
 
-  if (isImageMime || isPdf || isImageExt) {
+  const isAllowedExt = ALLOWED_EXTENSIONS.has(ext);
+  const isAllowedMime = ALLOWED_MIME_TYPES.has(mime);
+
+  if (isAllowedExt && isAllowedMime) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files (JPG, JPEG, PNG, WEBP, GIF, SVG, etc.) and PDFs are allowed!'), false);
+    cb(new Error('Invalid file type. Only JPG, JPEG, PNG, WEBP, and PDF documents are allowed.'), false);
   }
 };
 

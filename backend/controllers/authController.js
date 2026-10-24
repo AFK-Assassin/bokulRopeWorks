@@ -1,11 +1,16 @@
 import { User } from '../models/User.js';
 import ActivityLog from '../models/ActivityLog.js';
+import { TokenBlacklist } from '../models/TokenBlacklist.js';
 import jwt from 'jsonwebtoken';
 
 const getSignedJwtToken = (user) => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is missing.');
+  }
   return jwt.sign(
     { id: user._id, role: user.role, email: user.email },
-    process.env.JWT_SECRET || 'bokul_industrial_rope_jwt_secret_key_2026_super_secure',
+    secret,
     { expiresIn: process.env.JWT_EXPIRE || '30d' }
   );
 };
@@ -62,6 +67,25 @@ export const login = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (token) {
+      try {
+        const decoded = jwt.decode(token);
+        const expiresAt = decoded && decoded.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 24 * 60 * 60 * 1000);
+        await TokenBlacklist.findOneAndUpdate(
+          { token },
+          { token, expiresAt },
+          { upsert: true, new: true }
+        );
+      } catch (blacklistErr) {
+        console.warn('[Auth Warning] Token blacklist entry note:', blacklistErr.message);
+      }
+    }
+
     if (req.user) {
       await ActivityLog.create({
         action: `Admin / Owner Logged Out (${req.user.email})`,
@@ -142,11 +166,14 @@ export const registerAdmin = async (req, res, next) => {
       });
     }
 
+    // Only existing owners can assign the 'owner' role to new accounts
+    const assignedRole = (role === 'owner' && req.user?.role === 'owner') ? 'owner' : 'admin';
+
     const user = await User.create({
       name,
       email: email.toLowerCase(),
       password,
-      role: role === 'owner' ? 'owner' : 'admin',
+      role: assignedRole,
     });
 
     await ActivityLog.create({
@@ -285,24 +312,6 @@ export const changePassword = async (req, res, next) => {
       success: true,
       message: 'Password updated successfully',
     });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const seedAdmin = async (req, res, next) => {
-  try {
-    let admin = await User.findOne({ email: 'admin@bokulrope.com' });
-    if (!admin) {
-      admin = await User.create({
-        name: 'Bokul Rope Admin',
-        email: 'admin@bokulrope.com',
-        password: 'Admin@Bokul2026!',
-        role: 'admin',
-      });
-      return res.status(201).json({ success: true, message: 'Admin account created', user: admin });
-    }
-    res.status(200).json({ success: true, message: 'Admin account already exists', user: admin });
   } catch (error) {
     next(error);
   }

@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { connectDB } from './config/db.js';
 import productRoutes from './routes/productRoutes.js';
@@ -36,20 +37,35 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // 1. CORS Configuration - MUST BE FIRST BEFORE ANY RATE LIMITERS OR HELMET
-const allowedOrigins = [
+const isProduction = process.env.NODE_ENV === 'production';
+
+const productionOrigins = [
+  'https://bokulropeworks.com',
+  'https://www.bokulropeworks.com',
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
+const developmentOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:3000',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
+const allowedOrigins = isProduction ? productionOrigins : developmentOrigins;
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      
+      const isAllowed = allowedOrigins.includes(origin) || (!isProduction && origin.startsWith('http://localhost:'));
+      if (isAllowed) {
         callback(null, true);
       } else {
-        callback(null, true);
+        // Return false without throwing an internal exception
+        callback(null, false);
       }
     },
     credentials: true,
@@ -61,10 +77,22 @@ app.use(
 // Enable preflight for all routes
 app.options('*', cors());
 
-// 2. HTTP Security Headers (Helmet) - Allow static uploads rendering
+// 2. HTTP Security Headers (Helmet) with tailored CSP
 app.use(
   helmet({
-    crossOriginResourcePolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: isProduction ? {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://bokulropeworks.com'],
+        connectSrc: ["'self'", 'https://bokulropeworks.com'],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'self'"],
+      },
+    } : false,
   })
 );
 
@@ -134,14 +162,19 @@ app.use('/api/standards', standardRoutes);
 const seedDefaultAdmin = async () => {
   try {
     const adminCount = await User.countDocuments({ role: { $in: ['admin', 'owner'] } });
-    if (adminCount === 0) {
+    const seedEmail = process.env.ADMIN_SEED_EMAIL;
+    const seedPassword = process.env.ADMIN_SEED_PASSWORD;
+
+    if (adminCount === 0 && seedEmail && seedPassword) {
       await User.create({
         name: 'Bokul Rope Admin',
-        email: 'admin@bokulrope.com',
-        password: 'Admin@Bokul2026!',
+        email: seedEmail.toLowerCase(),
+        password: seedPassword,
         role: 'admin',
       });
-      console.log('[Security] Created default admin account: admin@bokulrope.com');
+      console.log(`[Security] Created default admin account: ${seedEmail}`);
+    } else if (adminCount === 0) {
+      console.log('[Security] Admin seed skipped: ADMIN_SEED_EMAIL and ADMIN_SEED_PASSWORD env variables not configured.');
     }
     await seedInitialData();
   } catch (err) {
@@ -150,7 +183,19 @@ const seedDefaultAdmin = async () => {
 };
 setTimeout(seedDefaultAdmin, 2000);
 
-// 404 Handler
+// Serve static frontend build if present (e.g. monolithic or single-container production deployment)
+const frontendDist = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/uploads')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
+
+// 404 Handler for API and unhandled requests
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,

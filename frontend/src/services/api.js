@@ -1,7 +1,11 @@
 const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
   if (typeof window !== 'undefined' && window.location.hostname) {
-    return `http://${window.location.hostname}:5000/api`;
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return `http://${window.location.hostname}:5000/api`;
+    }
+    // In production or custom domains, default to same-origin relative /api
+    return '/api';
   }
   return 'http://localhost:5000/api';
 };
@@ -163,11 +167,11 @@ export const submitInquiry = async (formData) => {
     }
     return { success: true, data: data.data, estimate: data.estimate };
   } catch (error) {
-    console.warn('[API Warning] Inquiries offline fallback note:', error.message);
+    console.warn('[API Warning] Inquiry submission error:', error.message);
     return {
-      success: true,
+      success: false,
       offline: true,
-      message: 'Your inquiry has been recorded successfully. Our sales desk will follow up shortly.',
+      message: 'Could not reach our server. Please try again or contact us directly by phone.',
     };
   }
 };

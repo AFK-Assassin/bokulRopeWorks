@@ -45,33 +45,36 @@ export default function OwnerLogin({ onLoginSuccess, onBackToSite }) {
 
         <form onSubmit={handleSubmit} className="owner-login-form" autoComplete="off">
           <div className="owner-form-group">
-            <label>Owner / Admin Email</label>
+            <label htmlFor="ol-email">Owner / Admin Email</label>
             <input
+              id="ol-email"
               type="email"
               required
               placeholder="admin@bokulrope.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              autoComplete="off"
+              autoComplete="username"
             />
           </div>
 
           <div className="owner-form-group">
-            <label>Security Password</label>
+            <label htmlFor="ol-password">Security Password</label>
             <div className="password-input-wrap">
               <input
+                id="ol-password"
                 type={showPassword ? 'text' : 'password'}
                 required
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
+                autoComplete="current-password"
               />
               <button
                 type="button"
                 className="password-toggle-btn"
                 onClick={() => setShowPassword(!showPassword)}
                 title={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
               </button>

@@ -301,7 +301,7 @@ export default function QuoteManager() {
                 <div className="detail-row"><strong>Full Name:</strong> <span>{selectedQuote.fullName}</span></div>
                 <div className="detail-row"><strong>Company:</strong> <span>{selectedQuote.companyName || 'N/A'}</span></div>
                 <div className="detail-row"><strong>Phone:</strong> <a href={`tel:${selectedQuote.phone}`}>{selectedQuote.phone}</a></div>
-                <div className="detail-row"><strong>WhatsApp:</strong> <a href={`https://wa.me/${(selectedQuote.whatsApp || selectedQuote.phone).replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer">{selectedQuote.whatsApp || selectedQuote.phone}</a></div>
+                <div className="detail-row"><strong>WhatsApp:</strong> <a href={`https://wa.me/${(selectedQuote.whatsApp || selectedQuote.phone).replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer">{selectedQuote.whatsApp || selectedQuote.phone}</a></div>
                 <div className="detail-row"><strong>Email:</strong> <a href={`mailto:${selectedQuote.email}`}>{selectedQuote.email || 'N/A'}</a></div>
                 <div className="detail-row"><strong>Delivery Destination:</strong> <span>{selectedQuote.deliveryLocation || 'Not specified'}</span></div>
               </div>

@@ -32,7 +32,14 @@ export const protect = async (req, res, next) => {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bokul_rope_works_super_secret_jwt_key_2026_secured');
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({
+        success: false,
+        message: 'Server security configuration error: JWT_SECRET missing.',
+      });
+    }
+    const decoded = jwt.verify(token, secret);
 
     // Get user from the token payload
     req.user = await User.findById(decoded.id).select('-password');

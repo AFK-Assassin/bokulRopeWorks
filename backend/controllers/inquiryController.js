@@ -27,10 +27,11 @@ export const createInquiry = async (req, res, next) => {
     let estimate = null;
     try {
       estimate = await generateQuoteEstimate({
-        productName: productInterest,
-        quantity: requiredQuantity,
-        diameter: diameter,
-        location: deliveryLocation,
+        productInterest: productInterest || 'General Inquiry',
+        requiredQuantity: requiredQuantity || 'Standard Batch',
+        diameter: diameter || '',
+        deliveryLocation: deliveryLocation || 'Not specified',
+        message: message || '',
       });
     } catch (aiError) {
       console.warn('[AI Quote Warning] Fallback to deterministic model:', aiError.message);

@@ -1,18 +1,36 @@
+import { useEffect } from 'react';
 import { IconX, IconCheckCircle, IconShieldCheck, IconRope, IconTruck } from './Icons';
 
 export default function ProductDetailModal({ product, isOpen, onClose, onRequestQuote }) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !product) return null;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content detail-modal-content" onClick={(e) => e.stopPropagation()}>
+      <div 
+        className="modal-content detail-modal-content" 
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pdm-title"
+      >
         <button className="modal-close" onClick={onClose} aria-label="Close details">
           <IconX size={20} />
         </button>
 
         <div className="detail-modal-header">
           <div className="modal-tag">{product.category}</div>
-          <h2>{product.name}</h2>
+          <h2 id="pdm-title">{product.name}</h2>
           <p className="detail-subtitle">{product.shortDesc}</p>
         </div>
 

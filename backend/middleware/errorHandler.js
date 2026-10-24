@@ -1,10 +1,21 @@
 export const errorHandler = (err, req, res, next) => {
-  console.error('[Error Stack]:', err.stack || err.message);
-  
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Log full error details server-side (never expose to client in prod)
+  console.error(`[Error] ${req.method} ${req.originalUrl}:`, err.message);
+  if (!isProduction) {
+    console.error('[Stack]:', err.stack);
+  }
+
+  // Determine appropriate HTTP status code
+  // res.statusCode defaults to 200 for unhandled errors, so treat as 500
+  const statusCode = res.statusCode && res.statusCode >= 400 ? res.statusCode : 500;
+
   res.status(statusCode).json({
     success: false,
-    message: err.message || 'Internal Server Error',
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+    message: isProduction && statusCode === 500
+      ? 'An internal server error occurred. Please try again later.'
+      : (err.message || 'Internal Server Error'),
+    ...(isProduction ? {} : { stack: err.stack }),
   });
 };
